@@ -13,8 +13,6 @@
         "text":"Discord"
     },
     "bannerUrl":"banner.png",
-    "githubRepos":[
-        "justsleightly/vpm-package-template"
-    ],
+    "githubRepos":[],
     "packages":[]
 }
