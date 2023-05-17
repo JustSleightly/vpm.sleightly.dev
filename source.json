@@ -1,7 +1,7 @@
 {
     "name":"JustSleightly's VPM Packages",
     "id":"dev.sleightly.vpm-listing",
-    "url":"https://justsleightly.github.io/vpm.sleightly.dev/index.json",
+    "url":"https://vpm.sleightly.dev/index.json",
     "author":{
         "email":"just@sleightly.dev",
         "name":"JustSleightly",
