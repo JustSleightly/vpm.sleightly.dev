@@ -7,7 +7,7 @@ A personalized template customized from [VRChat's Package Listing Template](http
 ## ▶ Getting Started
 
 * Press [![Use This Template](https://user-images.githubusercontent.com/737888/185467681-e5fdb099-d99f-454b-8d9e-0760e5a6e588.png)](https://github.com/JustSleightly/VPM-Package-Listing-Template/generate)
-to start a new GitHub project based on this template, and follow the directions there.
+to start a new GitHub project based on this template.
   * Choose a fitting repository name and description.
   * Set the visibility can be either 'Public' or 'Private', as the published page will be public either way.
   * You don't need to select 'Include all branches.'
