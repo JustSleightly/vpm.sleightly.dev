@@ -13,6 +13,8 @@
         "text":"Discord"
     },
     "bannerUrl":"banner.png",
-    "githubRepos":[],
+    "githubRepos":[
+        "JustSleightly/ClipFocus"
+    ],
     "packages":[]
 }
