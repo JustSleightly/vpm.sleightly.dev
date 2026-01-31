@@ -14,7 +14,8 @@
     },
     "bannerUrl":"banner.png",
     "githubRepos":[
-        "JustSleightly/ClipFocus"
+        "JustSleightly/ClipFocus",
+        "JustSleightly/ClipTidy"
     ],
     "packages":[]
 }
