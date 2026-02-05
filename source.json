@@ -1,21 +1,18 @@
 {
-    "name":"JustSleightly's VPM Packages",
-    "id":"dev.sleightly.vpm-listing",
-    "url":"https://vpm.sleightly.dev/index.json",
+    "name":"iTerrorized's VPM Packages",
+    "id":"dev.terrorized.vpm-listing",
+    "url":"https://vpm.terrorized.dev/index.json",
     "author":{
-        "email":"just@sleightly.dev",
-        "name":"JustSleightly",
-        "url":"https://just.sleightly.dev"
+        "email":"admin@terrorized.dev",
+        "name":"iTerrorized",
+        "url":"https://terrorized.dev"
     },
     "description":"For use with the VRChat Creator Companion",
     "infoLink":{
-        "url":"https://discord.sleightly.dev",
-        "text":"Discord"
+        "url":"https://github.com/iTerrorized/vpm.terrorized.dev",
+        "text":"GitHub"
     },
     "bannerUrl":"banner.png",
-    "githubRepos":[
-        "JustSleightly/ClipFocus",
-        "JustSleightly/ClipTidy"
-    ],
+    "githubRepos":[],
     "packages":[]
 }
