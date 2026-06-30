@@ -387,23 +387,6 @@ a:hover { color: #fff; }
 .close-button { font-size: 24px; }
 .help-button { padding-inline: 14px; }
 
-
-.publisher-line {
-  width: min(100%, var(--stage-max));
-  margin-top: 18px;
-  gap: 10px;
-  flex-wrap: wrap;
-  color: var(--fg-2);
-  font-size: var(--text-body-20);
-}
-
-.publisher-dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: var(--border-strong);
-}
-
 .main-content {
   width: 100%;
   padding: 0 24px 40px;
@@ -610,7 +593,15 @@ a:hover { color: #fff; }
   color: var(--fg-2);
 }
 .setup-list li { margin: 0 0 8px; }
-.dialog-footnote { margin-top: 12px; color: var(--fg-2); font-size: var(--text-body-20); }
+.dialog-footnote {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--fg-2);
+  font-size: var(--text-body-20);
+}
 .hidden { display: none !important; }
 
 .site-footer {

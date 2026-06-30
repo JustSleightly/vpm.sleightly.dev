@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JustSleightly VPM — VRChat Package Listing</title>
-  <meta name="description" content="JustSleightly VRChat Creator Companion package listing.">
+  <meta name="description" content="Scripts, prefabs, animations, and other assets made for Unity/VRChat">
   <meta name="theme-color" content="#121212">
-  <link rel="stylesheet" href="styles.css?v=20260630-vpm-ux-cleanup">
+  <link rel="stylesheet" href="styles.css?v=20260630-vpm-alcom-copy">
   <link rel="icon" href="./favicon.ico">
 </head>
 <body class="theme-dark" data-theme="dark">
@@ -29,9 +29,9 @@
     <header class="hero-section" aria-label="JustSleightly VPM packages">
       <div class="hero-grid">
         <section class="hero-copy">
-          <p class="eyebrow">VRChat Creator Companion</p>
+          <p class="eyebrow">VPM.SLEIGHTLY.DEV</p>
           <h1>VCC Packages</h1>
-          <p class="hero-lede">Add the JustSleightly listing to VRChat Creator Companion, then install the avatar tools you actually need.</p>
+          <p class="hero-lede">Scripts, prefabs, animations, and other assets made for Unity/VRChat</p>
           <p class="package-count-line"><strong id="packageCountMetric">2</strong> packages currently listed.</p>
         </section>
 
@@ -48,17 +48,6 @@
         </aside>
       </div>
 
-      <div class="publisher-line">
-        {{~ if listingInfo.Author.Email; ~}}
-        <span title="{{ listingInfo.Author.Email }}">Published by <a href="{{listingInfo.Author.Url}}" target="_blank" rel="noopener noreferrer">{{ listingInfo.Author.Name }}</a></span>
-        {{~ else; ~}}
-        <span>Published by <a href="{{listingInfo.Author.Url}}" target="_blank" rel="noopener noreferrer">{{ listingInfo.Author.Name }}</a></span>
-        {{~ end; ~}}
-        {{~ if listingInfo.InfoLink.Url ~}}
-          <span class="publisher-dot" aria-hidden="true"></span>
-          <a href="{{listingInfo.InfoLink.Url}}" target="_blank" rel="noopener noreferrer">{{ if listingInfo.InfoLink.Text; listingInfo.InfoLink.Text; else; "Learn More"; end; }}</a>
-        {{~ end; ~}}
-      </div>
     </header>
 
     <main class="main-content">
@@ -103,21 +92,22 @@
       <div class="dialog-card setup-dialog-card">
         <div class="dialog-header">
           <div>
-            <p class="eyebrow">VCC Setup</p>
-            <h3 id="addListingToVccHelpTitle">Add This Listing To VCC</h3>
+            <p class="eyebrow">VPM Setup</p>
+            <h3 id="addListingToVccHelpTitle">Add This Listing To VCC Or ALCOM</h3>
           </div>
           <button type="button" class="button icon-button close-button" id="addListingToVccHelpClose" aria-label="Close help dialog">×</button>
         </div>
         <ol class="setup-list">
           <li>Click <strong>Add Listing To VCC</strong> to open VRChat Creator Companion automatically.</li>
           <li>Or open VCC → Settings → Packages → <strong>Add Repository</strong>.</li>
-          <li>Paste the listing URL below if VCC does not open from your browser.</li>
+          <li>ALCOM users can add the same VPM listing URL as a repository.</li>
+          <li>Paste the listing URL below if your package manager does not open from the browser.</li>
         </ol>
         <div class="dialog-url-row">
           <input aria-readonly="true" id="vccListingInfoUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
           <button type="button" class="button secondary" id="vccListingInfoUrlFieldCopy">Copy URL</button>
         </div>
-        <p class="dialog-footnote"><a href="https://vcc.docs.vrchat.com" target="_blank" rel="noopener noreferrer">VCC docs</a></p>
+        <p class="dialog-footnote"><a href="https://vcc.docs.vrchat.com" target="_blank" rel="noopener noreferrer">VCC docs</a><span aria-hidden="true">/</span><a href="https://vrc-get.anatawa12.com/en/alcom/" target="_blank" rel="noopener noreferrer">ALCOM</a></p>
       </div>
     </div>
 
@@ -178,11 +168,11 @@
         <span aria-hidden="true">/</span>
         <a href="https://links.sleightly.dev" target="_blank" rel="noopener noreferrer">links.sleightly.dev</a>
         <span aria-hidden="true">/</span>
-        <span>Built for VRChat Creator Companion</span>
+        <span>Built for VCC and ALCOM</span>
       </footer>
     {{~ end; ~}}
   </div>
 
-  <script type="module" src="app.js?v=20260630-vpm-ux-cleanup"></script>
+  <script type="module" src="app.js?v=20260630-vpm-alcom-copy"></script>
 </body>
 </html>
