@@ -61,6 +61,32 @@ const deriveRepoUrl = (packageInfo) => {
   return `https://github.com/JustSleightly/${inferredName}`;
 };
 
+const deriveReleaseAssetUrls = (packageInfo) => {
+  const zipUrl = safeHttpUrl(packageInfo.zipUrl || packageInfo.url);
+  if (!zipUrl) return { zipUrl: '', unityPackageUrl: '', packageJsonUrl: '' };
+
+  const url = new URL(zipUrl);
+  const pathParts = url.pathname.split('/');
+  const assetName = pathParts.pop() || '';
+  const releasePath = pathParts.join('/');
+  const unityAssetName = assetName.replace(/\.zip$/i, '.unitypackage');
+
+  return {
+    zipUrl,
+    unityPackageUrl: unityAssetName && unityAssetName !== assetName ? `${url.origin}${releasePath}/${unityAssetName}` : '',
+    packageJsonUrl: `${url.origin}${releasePath}/package.json`,
+  };
+};
+
+const setDownloadLink = (selector, href, label, packageInfo) => {
+  const link = $(selector);
+  if (!link) return;
+  const safeHref = safeHttpUrl(href);
+  link.classList.toggle('hidden', !safeHref);
+  link.href = safeHref || '#';
+  link.setAttribute('aria-label', `Download ${(packageInfo.displayName || packageInfo.name)} ${label}`);
+};
+
 const readFieldValue = (field) => field?.value || field?.getAttribute('value') || LISTING_URL;
 
 const copyFieldValue = async (field, button) => {
@@ -117,13 +143,10 @@ const fillPackageInfo = (packageId) => {
   author.textContent = packageInfo.author?.name || 'JustSleightly';
   author.href = packageInfo.author?.url || 'https://links.sleightly.dev';
 
-  const download = $('#packageInfoDownloadZip');
-  if (download) {
-    const hasZip = Boolean(packageInfo.zipUrl?.length);
-    download.classList.toggle('hidden', !hasZip);
-    download.href = hasZip ? packageInfo.zipUrl : '#';
-    download.setAttribute('aria-label', `Download ${(packageInfo.displayName || packageInfo.name)} package zip`);
-  }
+  const releaseAssetUrls = deriveReleaseAssetUrls(packageInfo);
+  setDownloadLink('#packageInfoDownloadZip', releaseAssetUrls.zipUrl, 'package ZIP', packageInfo);
+  setDownloadLink('#packageInfoDownloadUnityPackage', releaseAssetUrls.unityPackageUrl, 'Unity Package', packageInfo);
+  setDownloadLink('#packageInfoDownloadPackageJson', releaseAssetUrls.packageJsonUrl, 'package.json', packageInfo);
 
   const keywordWrap = $('#packageInfoKeywords');
   const keywordSection = keywordWrap?.closest('section');

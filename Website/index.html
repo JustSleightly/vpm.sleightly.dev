@@ -6,7 +6,7 @@
   <title>JustSleightly VPM — VRChat Package Listing</title>
   <meta name="description" content="Scripts, prefabs, animations, and other assets made for Unity/VRChat">
   <meta name="theme-color" content="#121212">
-  <link rel="stylesheet" href="styles.css?v=20260630-vpm-repo-card">
+  <link rel="stylesheet" href="styles.css?v=20260630-vpm-details-downloads">
   <link rel="icon" href="./favicon.ico">
 </head>
 <body class="theme-dark" data-theme="dark">
@@ -21,7 +21,7 @@
       <div class="nav-pills" aria-label="Quick links">
         <a href="https://links.sleightly.dev" target="_blank" rel="noopener noreferrer">Links</a>
         <a href="https://discord.sleightly.dev" target="_blank" rel="noopener noreferrer">Discord</a>
-        <a href="https://vcc.docs.vrchat.com" target="_blank" rel="noopener noreferrer">VCC Docs</a>
+        <a href="https://notes.sleightly.dev/community-repos" target="_blank" rel="noopener noreferrer">Community Repos</a>
       </div>
       <button type="button" class="button nav-cta" id="navAddRepoButton">Add To VCC</button>
     </nav>
@@ -107,7 +107,7 @@
           <input aria-readonly="true" id="vccListingInfoUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
           <button type="button" class="button secondary" id="vccListingInfoUrlFieldCopy">Copy URL</button>
         </div>
-        <p class="dialog-footnote"><a href="https://vcc.docs.vrchat.com" target="_blank" rel="noopener noreferrer">VCC docs</a><span aria-hidden="true">/</span><a href="https://vrc-get.anatawa12.com/en/alcom/" target="_blank" rel="noopener noreferrer">ALCOM</a></p>
+        <p class="dialog-footnote"><a href="https://vcc.docs.vrchat.com" target="_blank" rel="noopener noreferrer">VCC Docs</a><span aria-hidden="true">/</span><a href="https://vrc-get.anatawa12.com/en/alcom/" target="_blank" rel="noopener noreferrer">ALCOM</a><span aria-hidden="true">/</span><a href="https://notes.sleightly.dev/community-repos" target="_blank" rel="noopener noreferrer">Community Repos</a></p>
       </div>
     </div>
 
@@ -131,18 +131,6 @@
         <p class="package-description" id="packageInfoDescription">Package description.</p>
 
         <div class="info-grid">
-          <section>
-            <h4>Dependencies</h4>
-            <ul id="packageInfoDependencies"></ul>
-          </section>
-          <section>
-            <h4>Keywords</h4>
-            <div class="keyword-row" id="packageInfoKeywords"></div>
-          </section>
-          <section>
-            <h4>Author</h4>
-            <p><a href="#" target="_blank" rel="noopener noreferrer" id="packageInfoAuthor">Author Name</a></p>
-          </section>
           <section class="repo-card" id="packageInfoRepoSection">
             <div class="repo-card-heading">
               <h4>Source Repository</h4>
@@ -155,12 +143,26 @@
               <a class="button secondary repo-button" id="packageInfoDocsLink" href="https://github.com/JustSleightly" target="_blank" rel="noopener noreferrer">Read Docs</a>
             </div>
           </section>
+          <section>
+            <h4>Author</h4>
+            <p><a href="#" target="_blank" rel="noopener noreferrer" id="packageInfoAuthor">Author Name</a></p>
+          </section>
+          <section>
+            <h4>Keywords</h4>
+            <div class="keyword-row" id="packageInfoKeywords"></div>
+          </section>
+          <section>
+            <h4>Dependencies</h4>
+            <ul id="packageInfoDependencies"></ul>
+          </section>
         </div>
 
         <div class="dialog-action-footer">
           <div class="dialog-actions-primary">
             <button type="button" class="button primary" id="packageInfoAddToVcc">Add Listing To VCC</button>
             <a class="button secondary" id="packageInfoDownloadZip" href="#" target="_blank" rel="noopener noreferrer">Download ZIP</a>
+            <a class="button secondary" id="packageInfoDownloadUnityPackage" href="#" target="_blank" rel="noopener noreferrer">Download Unity Package</a>
+            <a class="button secondary" id="packageInfoDownloadPackageJson" href="#" target="_blank" rel="noopener noreferrer">Download Package.json</a>
           </div>
           <div class="dialog-url-row">
             <input aria-readonly="true" id="packageInfoVccUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
@@ -172,7 +174,7 @@
 
     {{~ if listingInfo.InfoLink.Url ~}}
       <footer class="site-footer" aria-label="Site footer">
-        <a href="https://links.sleightly.dev" target="_blank" rel="noopener noreferrer">links.sleightly.dev</a>
+        <a href="https://links.sleightly.dev" target="_blank" rel="noopener noreferrer">Links</a>
         <span aria-hidden="true">/</span>
         <a href="{{listingInfo.InfoLink.Url}}" target="_blank" rel="noopener noreferrer">{{ if listingInfo.InfoLink.Text; listingInfo.InfoLink.Text; else; "Discord"; end; }}</a>
         <span aria-hidden="true">/</span>
@@ -181,6 +183,6 @@
     {{~ end; ~}}
   </div>
 
-  <script type="module" src="app.js?v=20260630-vpm-repo-card"></script>
+  <script type="module" src="app.js?v=20260630-vpm-details-downloads"></script>
 </body>
 </html>

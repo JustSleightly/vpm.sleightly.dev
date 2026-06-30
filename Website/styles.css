@@ -167,7 +167,9 @@ a:hover { color: #fff; }
 
 .nav-pills {
   justify-self: center;
+  justify-content: center;
   gap: 4px;
+  max-width: 100%;
   padding: 4px;
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.055);
@@ -183,6 +185,7 @@ a:hover { color: #fff; }
   font-size: var(--text-label-10);
   font-weight: 700;
   letter-spacing: 0.02em;
+  white-space: nowrap;
   transition: color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
@@ -679,8 +682,14 @@ a:hover { color: #fff; }
 }
 
 @media (max-width: 940px) {
-  .top-bar { grid-template-columns: 1fr auto; border-radius: 28px; }
-  .nav-pills { grid-column: 1 / -1; justify-self: stretch; overflow-x: auto; }
+  .top-bar { grid-template-columns: auto minmax(0, 1fr) auto; border-radius: 28px; }
+  .nav-pills {
+    grid-column: auto;
+    justify-self: stretch;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-pills::-webkit-scrollbar { display: none; }
   .nav-cta { justify-self: end; }
   .hero-grid { grid-template-columns: 1fr; }
   .install-panel { max-width: 680px; }
@@ -689,8 +698,18 @@ a:hover { color: #fff; }
 }
 
 @media (max-width: 720px) {
-  .top-bar { position: relative; top: 0; width: min(calc(100% - 24px), var(--stage-max)); margin-top: 12px; }
+  .top-bar {
+    position: relative;
+    top: 0;
+    width: min(calc(100% - 20px), var(--stage-max));
+    min-height: 56px;
+    margin-top: 10px;
+    gap: 8px;
+  }
   .brand-wordmark { display: none; }
+  .brand-logo-wrap { width: 38px; height: 38px; }
+  .nav-pills { padding: 3px; gap: 2px; }
+  .nav-pills a { min-height: 32px; padding: 7px 8px; font-size: 10px; letter-spacing: 0.01em; }
   .nav-cta { min-height: 38px; padding-inline: 12px; }
   .hero-section { padding: 34px 16px 24px; }
   .main-content { padding-inline: 16px; }
@@ -710,7 +729,9 @@ a:hover { color: #fff; }
 }
 
 @media (max-width: 420px) {
-  .nav-pills a { padding-inline: 10px; }
+  .top-bar { width: min(calc(100% - 16px), var(--stage-max)); gap: 6px; padding: 7px; }
+  .nav-pills a { padding-inline: 7px; font-size: 9.5px; }
+  .nav-cta { padding-inline: 10px; font-size: 12px; }
   .package-primary-cell { align-items: flex-start; }
   .package-action-cell { grid-template-columns: 1fr; }
 }
