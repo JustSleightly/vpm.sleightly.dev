@@ -262,6 +262,7 @@ const initStageCanvas = () => {
 
   const symbols = ['♠', '♥', '♦', '♣'];
   const particles = [];
+  const clickBursts = [];
   const pointer = { x: -9999, y: -9999 };
   let frame = 0;
 
@@ -274,25 +275,58 @@ const initStageCanvas = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   };
 
-  const particleTarget = () => Math.min(90, Math.max(40, Math.floor(window.innerWidth / 24)));
+  const particleTarget = () => Math.min(128, Math.max(56, Math.floor(window.innerWidth / 18)));
 
   const createParticle = (seed = Math.random()) => ({
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
-    size: 11 + Math.random() * 14,
-    speed: 0.06 + Math.random() * 0.13,
-    drift: -0.08 + Math.random() * 0.16,
+    size: 10 + Math.random() * 13,
+    speed: 0.07 + Math.random() * 0.15,
+    drift: -0.095 + Math.random() * 0.19,
     rotation: Math.random() * Math.PI * 2,
-    spin: -0.0026 + Math.random() * 0.0052,
+    spin: -0.0032 + Math.random() * 0.0064,
     symbol: symbols[Math.floor(seed * symbols.length) % symbols.length],
-    red: Math.random() > 0.56,
-    alpha: 0.095 + Math.random() * 0.12,
+    red: Math.random() > 0.54,
+    alpha: 0.1 + Math.random() * 0.13,
   });
 
   const resetParticles = () => {
     particles.length = 0;
     const count = particleTarget();
     for (let i = 0; i < count; i += 1) particles.push(createParticle(i / count));
+  };
+
+  const createClickBurst = (x, y) => {
+    const burstCount = window.innerWidth < 700 ? 14 : 22;
+    for (let i = 0; i < burstCount; i += 1) {
+      const angle = (Math.PI * 2 * i) / burstCount + Math.random() * 0.36;
+      const speed = 1.35 + Math.random() * 2.45;
+      clickBursts.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 13 + Math.random() * 17,
+        rotation: Math.random() * Math.PI * 2,
+        spin: -0.035 + Math.random() * 0.07,
+        symbol: symbols[Math.floor(Math.random() * symbols.length)],
+        red: Math.random() > 0.42,
+        life: 0,
+        maxLife: 42 + Math.random() * 22,
+      });
+    }
+    if (clickBursts.length > 96) clickBursts.splice(0, clickBursts.length - 96);
+  };
+
+  const drawSuit = (particle, alphaScale = 1) => {
+    ctx.save();
+    ctx.translate(particle.x, particle.y);
+    ctx.rotate(particle.rotation);
+    ctx.font = `700 ${particle.size}px "IBM Plex Sans", system-ui, sans-serif`;
+    ctx.fillStyle = particle.red ? `rgba(255, 0, 42, ${particle.alpha * alphaScale})` : `rgba(220, 226, 224, ${particle.alpha * alphaScale})`;
+    ctx.shadowBlur = 0;
+    ctx.fillText(particle.symbol, 0, 0);
+    ctx.restore();
   };
 
   const draw = () => {
@@ -305,10 +339,10 @@ const initStageCanvas = () => {
       const dx = p.x - pointer.x;
       const dy = p.y - pointer.y;
       const distance = Math.hypot(dx, dy);
-      if (distance < 190) {
-        const force = (190 - distance) / 190;
-        p.x += (dx / Math.max(distance, 1)) * force * 0.72;
-        p.y += (dy / Math.max(distance, 1)) * force * 0.72;
+      if (distance < 220) {
+        const force = (220 - distance) / 220;
+        p.x += (dx / Math.max(distance, 1)) * force * 0.86;
+        p.y += (dy / Math.max(distance, 1)) * force * 0.86;
       }
 
       p.y -= p.speed;
@@ -321,21 +355,34 @@ const initStageCanvas = () => {
       if (p.x < -50) p.x = window.innerWidth + 50;
       if (p.x > window.innerWidth + 50) p.x = -50;
 
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rotation);
-      ctx.font = `700 ${p.size}px "IBM Plex Sans", system-ui, sans-serif`;
-      ctx.fillStyle = p.red ? `rgba(255, 0, 42, ${p.alpha})` : `rgba(220, 226, 224, ${p.alpha})`;
-      ctx.shadowBlur = 0;
-      ctx.fillText(p.symbol, 0, 0);
-      ctx.restore();
+      drawSuit(p);
     });
+
+    for (let i = clickBursts.length - 1; i >= 0; i -= 1) {
+      const burst = clickBursts[i];
+      burst.life += 1;
+      const progress = burst.life / burst.maxLife;
+      burst.x += burst.vx;
+      burst.y += burst.vy;
+      burst.vx *= 0.972;
+      burst.vy *= 0.972;
+      burst.vy -= 0.006;
+      burst.rotation += burst.spin;
+      burst.alpha = Math.max(0, 0.34 * (1 - progress));
+      drawSuit(burst, 1);
+      if (progress >= 1) clickBursts.splice(i, 1);
+    }
   };
 
   window.addEventListener('resize', () => { resize(); resetParticles(); }, { passive: true });
   window.addEventListener('pointermove', (event) => {
     pointer.x = event.clientX;
     pointer.y = event.clientY;
+  }, { passive: true });
+  window.addEventListener('pointerdown', (event) => {
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    createClickBurst(event.clientX, event.clientY);
   }, { passive: true });
   window.addEventListener('pointerleave', () => {
     pointer.x = -9999;
