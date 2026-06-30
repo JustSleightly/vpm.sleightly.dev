@@ -166,12 +166,12 @@
       </section>
     </main>
 
-    <fluent-dialog id="addListingToVccHelp" hidden modal>
+    <div id="addListingToVccHelp" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="addListingToVccHelpTitle" aria-hidden="true">
       <div class="dialog-card">
         <div class="dialog-header">
           <div>
             <p class="eyebrow">VCC Setup</p>
-            <h3>How To Add This Listing</h3>
+            <h3 id="addListingToVccHelpTitle">How To Add This Listing</h3>
           </div>
           <fluent-button appearance="stealth" id="addListingToVccHelpClose" aria-label="Close help dialog">
             <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -198,9 +198,9 @@
         </div>
         <p class="dialog-footnote">Read more about package listings <a href="https://vcc.docs.vrchat.com" target="_blank" rel="noopener">in the VCC docs</a>.</p>
       </div>
-    </fluent-dialog>
+    </div>
 
-    <fluent-dialog id="packageInfoModal" hidden modal>
+    <div id="packageInfoModal" class="modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="packageInfoName" aria-hidden="true">
       <div class="dialog-card package-dialog-card">
         <div class="dialog-header">
           <div>
@@ -256,7 +256,7 @@
           </fluent-button>
         </div>
       </div>
-    </fluent-dialog>
+    </div>
 
     {{~ if listingInfo.InfoLink.Url ~}}
       <footer class="site-footer" aria-label="Site footer">
