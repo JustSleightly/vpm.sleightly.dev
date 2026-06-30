@@ -262,8 +262,8 @@ const initStageCanvas = () => {
 
   const symbols = ['♠', '♥', '♦', '♣'];
   const particles = [];
-  const clickBursts = [];
   const pointer = { x: -9999, y: -9999 };
+  const focus = { x: -9999, y: -9999, life: 0, maxLife: 0, radius: 0, angle: 0 };
   let frame = 0;
 
   const resize = () => {
@@ -288,6 +288,7 @@ const initStageCanvas = () => {
     symbol: symbols[Math.floor(seed * symbols.length) % symbols.length],
     red: Math.random() > 0.54,
     alpha: 0.1 + Math.random() * 0.13,
+    pulse: 0,
   });
 
   const resetParticles = () => {
@@ -296,33 +297,37 @@ const initStageCanvas = () => {
     for (let i = 0; i < count; i += 1) particles.push(createParticle(i / count));
   };
 
-  const createClickBurst = (x, y) => {
-    const burstCount = window.innerWidth < 700 ? 14 : 22;
-    for (let i = 0; i < burstCount; i += 1) {
-      const angle = (Math.PI * 2 * i) / burstCount + Math.random() * 0.36;
-      const speed = 1.35 + Math.random() * 2.45;
-      clickBursts.push({
-        x,
-        y,
-        vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed,
-        size: 13 + Math.random() * 17,
-        rotation: Math.random() * Math.PI * 2,
-        spin: -0.035 + Math.random() * 0.07,
-        symbol: symbols[Math.floor(Math.random() * symbols.length)],
-        red: Math.random() > 0.42,
-        life: 0,
-        maxLife: 42 + Math.random() * 22,
-      });
-    }
-    if (clickBursts.length > 96) clickBursts.splice(0, clickBursts.length - 96);
+  const activateFocus = (x, y) => {
+    focus.x = x;
+    focus.y = y;
+    focus.life = 1;
+    focus.maxLife = window.innerWidth < 700 ? 78 : 96;
+    focus.radius = Math.min(380, Math.max(220, window.innerWidth * 0.24));
+    focus.angle = 0;
   };
 
-  const drawSuit = (particle, alphaScale = 1) => {
+  const drawFocusHalo = (progress, energy) => {
+    const ringRadius = 34 + focus.radius * 0.48 * progress;
+    ctx.save();
+    ctx.translate(focus.x, focus.y);
+    ctx.rotate(focus.angle * 0.45);
+    ctx.lineWidth = 1 + energy * 1.2;
+    ctx.strokeStyle = `rgba(255, 0, 42, ${0.18 * energy})`;
+    ctx.beginPath();
+    ctx.arc(0, 0, ringRadius, 0.18, Math.PI * 1.14);
+    ctx.stroke();
+    ctx.strokeStyle = `rgba(230, 236, 232, ${0.14 * energy})`;
+    ctx.beginPath();
+    ctx.arc(0, 0, ringRadius * 0.68, Math.PI * 1.2, Math.PI * 2.05);
+    ctx.stroke();
+    ctx.restore();
+  };
+
+  const drawSuit = (particle, alphaScale = 1, sizeScale = 1) => {
     ctx.save();
     ctx.translate(particle.x, particle.y);
     ctx.rotate(particle.rotation);
-    ctx.font = `700 ${particle.size}px "IBM Plex Sans", system-ui, sans-serif`;
+    ctx.font = `700 ${particle.size * sizeScale}px "IBM Plex Sans", system-ui, sans-serif`;
     ctx.fillStyle = particle.red ? `rgba(255, 0, 42, ${particle.alpha * alphaScale})` : `rgba(220, 226, 224, ${particle.alpha * alphaScale})`;
     ctx.shadowBlur = 0;
     ctx.fillText(particle.symbol, 0, 0);
@@ -335,19 +340,43 @@ const initStageCanvas = () => {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    particles.forEach((p) => {
-      const dx = p.x - pointer.x;
-      const dy = p.y - pointer.y;
-      const distance = Math.hypot(dx, dy);
-      if (distance < 220) {
-        const force = (220 - distance) / 220;
-        p.x += (dx / Math.max(distance, 1)) * force * 0.86;
-        p.y += (dy / Math.max(distance, 1)) * force * 0.86;
-      }
+    const focusActive = focus.life > 0 && focus.life <= focus.maxLife;
+    const focusProgress = focusActive ? focus.life / focus.maxLife : 0;
+    const focusEnergy = focusActive ? Math.sin(Math.PI * focusProgress) : 0;
+    if (focusActive) {
+      focus.life += 1;
+      focus.angle += 0.035 + focusEnergy * 0.025;
+      drawFocusHalo(focusProgress, focusEnergy);
+    }
 
+    particles.forEach((p) => {
       p.y -= p.speed;
       p.x += p.drift;
       p.rotation += p.spin;
+
+      const hoverDistance = Math.hypot(p.x - pointer.x, p.y - pointer.y);
+      if (hoverDistance < 150) p.pulse = Math.max(p.pulse, (1 - hoverDistance / 150) * 0.28);
+
+      if (focusActive) {
+        const dx = focus.x - p.x;
+        const dy = focus.y - p.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance < focus.radius) {
+          const falloff = 1 - distance / focus.radius;
+          const strength = falloff * focusEnergy;
+          const safeDistance = Math.max(distance, 1);
+          const inwardX = dx / safeDistance;
+          const inwardY = dy / safeDistance;
+          const tangentX = -inwardY;
+          const tangentY = inwardX;
+          p.x += tangentX * strength * 1.35 + inwardX * strength * 0.22;
+          p.y += tangentY * strength * 1.35 + inwardY * strength * 0.22;
+          p.rotation += strength * 0.032;
+          p.pulse = Math.max(p.pulse, strength * 0.88);
+        }
+      }
+
+      p.pulse *= 0.92;
       if (p.y < -40) {
         p.y = window.innerHeight + 40;
         p.x = Math.random() * window.innerWidth;
@@ -355,23 +384,8 @@ const initStageCanvas = () => {
       if (p.x < -50) p.x = window.innerWidth + 50;
       if (p.x > window.innerWidth + 50) p.x = -50;
 
-      drawSuit(p);
+      drawSuit(p, 1 + p.pulse * 1.45, 1 + p.pulse * 0.14);
     });
-
-    for (let i = clickBursts.length - 1; i >= 0; i -= 1) {
-      const burst = clickBursts[i];
-      burst.life += 1;
-      const progress = burst.life / burst.maxLife;
-      burst.x += burst.vx;
-      burst.y += burst.vy;
-      burst.vx *= 0.972;
-      burst.vy *= 0.972;
-      burst.vy -= 0.006;
-      burst.rotation += burst.spin;
-      burst.alpha = Math.max(0, 0.34 * (1 - progress));
-      drawSuit(burst, 1);
-      if (progress >= 1) clickBursts.splice(i, 1);
-    }
   };
 
   window.addEventListener('resize', () => { resize(); resetParticles(); }, { passive: true });
@@ -382,7 +396,7 @@ const initStageCanvas = () => {
   window.addEventListener('pointerdown', (event) => {
     pointer.x = event.clientX;
     pointer.y = event.clientY;
-    createClickBurst(event.clientX, event.clientY);
+    activateFocus(event.clientX, event.clientY);
   }, { passive: true });
   window.addEventListener('pointerleave', () => {
     pointer.x = -9999;
