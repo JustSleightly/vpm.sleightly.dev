@@ -34,6 +34,33 @@ const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let activePackageId = '';
 
+const safeHttpUrl = (value, fallback = '') => {
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const titleCaseSegment = (segment = '') => segment
+  .split(/[-_.\s]+/)
+  .filter(Boolean)
+  .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+  .join('');
+
+const deriveRepoUrl = (packageInfo) => {
+  const candidates = [packageInfo.zipUrl, packageInfo.url, packageInfo.repoUrl, packageInfo.repositoryUrl, packageInfo.sourceUrl];
+  for (const candidate of candidates) {
+    const safeUrl = safeHttpUrl(candidate);
+    const match = safeUrl.match(/^https:\/\/github\.com\/([^/?#]+)\/([^/?#]+)(?:[/?#]|$)/i);
+    if (match) return `https://github.com/${match[1]}/${match[2]}`;
+  }
+
+  const inferredName = titleCaseSegment((packageInfo.name || '').split('.').pop()) || titleCaseSegment(packageInfo.displayName?.replace(/^JS[-\s]*/i, '')) || 'Packages';
+  return `https://github.com/JustSleightly/${inferredName}`;
+};
+
 const readFieldValue = (field) => field?.value || field?.getAttribute('value') || LISTING_URL;
 
 const copyFieldValue = async (field, button) => {
@@ -113,13 +140,19 @@ const fillPackageInfo = (packageId) => {
     });
   }
 
-  const license = $('#packageInfoLicense');
-  const licenseSection = license?.closest('section');
-  const hasLicense = Boolean(packageInfo.license?.length || packageInfo.licensesUrl?.length);
-  licenseSection?.classList.toggle('hidden', !hasLicense);
-  if (hasLicense) {
-    license.textContent = packageInfo.license || 'See license';
-    license.href = packageInfo.licensesUrl || '#';
+  const repoUrl = deriveRepoUrl(packageInfo);
+  const repoLabel = repoUrl.replace(/^https:\/\/github\.com\//i, '');
+  const repoName = $('#packageInfoRepoName');
+  const repoLink = $('#packageInfoRepoLink');
+  const docsLink = $('#packageInfoDocsLink');
+  if (repoName) repoName.textContent = repoLabel;
+  if (repoLink) {
+    repoLink.href = repoUrl;
+    repoLink.setAttribute('aria-label', `Browse ${repoLabel} on GitHub`);
+  }
+  if (docsLink) {
+    docsLink.href = `${repoUrl}#readme`;
+    docsLink.setAttribute('aria-label', `Read ${repoLabel} README documentation`);
   }
 
   const dependencies = $('#packageInfoDependencies');

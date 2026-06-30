@@ -6,7 +6,7 @@
   <title>JustSleightly VPM — VRChat Package Listing</title>
   <meta name="description" content="Scripts, prefabs, animations, and other assets made for Unity/VRChat">
   <meta name="theme-color" content="#121212">
-  <link rel="stylesheet" href="styles.css?v=20260630-vpm-alcom-copy-jsid">
+  <link rel="stylesheet" href="styles.css?v=20260630-vpm-repo-card">
   <link rel="icon" href="./favicon.ico">
 </head>
 <body class="theme-dark" data-theme="dark">
@@ -30,7 +30,7 @@
       <div class="hero-grid">
         <section class="hero-copy">
           <p class="eyebrow">VPM.SLEIGHTLY.DEV</p>
-          <h1>VCC Packages</h1>
+          <h1>VPM Repos</h1>
           <p class="hero-lede">Scripts, prefabs, animations, and other assets made for Unity/VRChat</p>
           <p class="package-count-line"><strong id="packageCountMetric">2</strong> packages currently listed.</p>
         </section>
@@ -143,9 +143,17 @@
             <h4>Author</h4>
             <p><a href="#" target="_blank" rel="noopener noreferrer" id="packageInfoAuthor">Author Name</a></p>
           </section>
-          <section>
-            <h4>License</h4>
-            <p><a href="#" id="packageInfoLicense" target="_blank" rel="noopener noreferrer">License</a></p>
+          <section class="repo-card" id="packageInfoRepoSection">
+            <div class="repo-card-heading">
+              <h4>Source Repository</h4>
+              <span class="badge repo-badge">GitHub</span>
+            </div>
+            <p class="text-mono repo-name" id="packageInfoRepoName">JustSleightly/package</p>
+            <p class="repo-card-copy">Browse source, releases, and README documentation for this package.</p>
+            <div class="repo-card-actions">
+              <a class="button secondary repo-button" id="packageInfoRepoLink" href="https://github.com/JustSleightly" target="_blank" rel="noopener noreferrer">Browse Repo</a>
+              <a class="button secondary repo-button" id="packageInfoDocsLink" href="https://github.com/JustSleightly" target="_blank" rel="noopener noreferrer">Read Docs</a>
+            </div>
           </section>
         </div>
 
@@ -164,15 +172,15 @@
 
     {{~ if listingInfo.InfoLink.Url ~}}
       <footer class="site-footer" aria-label="Site footer">
-        <a href="{{listingInfo.InfoLink.Url}}" target="_blank" rel="noopener noreferrer">{{ if listingInfo.InfoLink.Text; listingInfo.InfoLink.Text; else; "Learn More"; end; }}</a>
-        <span aria-hidden="true">/</span>
         <a href="https://links.sleightly.dev" target="_blank" rel="noopener noreferrer">links.sleightly.dev</a>
+        <span aria-hidden="true">/</span>
+        <a href="{{listingInfo.InfoLink.Url}}" target="_blank" rel="noopener noreferrer">{{ if listingInfo.InfoLink.Text; listingInfo.InfoLink.Text; else; "Discord"; end; }}</a>
         <span aria-hidden="true">/</span>
         <span>Built for VCC and ALCOM</span>
       </footer>
     {{~ end; ~}}
   </div>
 
-  <script type="module" src="app.js?v=20260630-vpm-alcom-copy"></script>
+  <script type="module" src="app.js?v=20260630-vpm-repo-card"></script>
 </body>
 </html>

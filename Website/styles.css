@@ -389,7 +389,7 @@ a:hover { color: #fff; }
 
 .main-content {
   width: 100%;
-  padding: 0 24px 40px;
+  padding: 0 24px 12px;
 }
 
 .package-section {
@@ -571,6 +571,55 @@ a:hover { color: #fff; }
 .info-grid ul { margin: 0; padding-left: 18px; }
 .keyword-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .keyword-row .badge { min-height: 28px; padding: 5px 8px; font-size: 11px; }
+.repo-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 100% 0, rgba(255, 0, 42, 0.13), transparent 46%),
+    rgba(255, 255, 255, 0.045) !important;
+}
+.repo-card::after {
+  content: "";
+  position: absolute;
+  inset: auto 12px 10px auto;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  transform: rotate(8deg);
+  background: linear-gradient(145deg, rgba(255, 0, 42, 0.18), rgba(255, 255, 255, 0.035));
+  opacity: 0.34;
+  pointer-events: none;
+}
+.repo-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.repo-badge { min-height: 24px; padding: 4px 8px; font-size: 10px; }
+.repo-name {
+  color: #fff;
+  font-size: var(--text-body-10);
+  overflow-wrap: anywhere;
+}
+.repo-card-copy {
+  margin-top: 7px;
+  max-width: 34ch;
+  color: var(--fg-2);
+  font-size: var(--text-body-20);
+  line-height: 1.45;
+}
+.repo-card-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.repo-button { min-height: 34px; padding-inline: 12px; font-size: var(--text-button-10); }
 .dialog-action-footer {
   position: sticky;
   bottom: -18px;
@@ -606,8 +655,8 @@ a:hover { color: #fff; }
 
 .site-footer {
   width: min(calc(100% - 48px), var(--stage-max));
-  margin: 34px auto 26px;
-  padding: 18px 0 0;
+  margin: 18px auto 20px;
+  padding: 14px 0 0;
   display: flex;
   justify-content: center;
   gap: 12px;
