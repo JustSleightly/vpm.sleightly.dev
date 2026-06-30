@@ -266,6 +266,10 @@ const initStageCanvas = () => {
   const pointer = { x: -9999, y: -9999 };
   let frame = 0;
 
+  const sizeRange = () => (window.innerWidth < 700
+    ? { min: 15, spread: 18 }
+    : { min: 17, spread: 22 });
+
   const resize = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.floor(window.innerWidth * dpr);
@@ -277,21 +281,24 @@ const initStageCanvas = () => {
 
   const particleTarget = () => Math.min(128, Math.max(56, Math.floor(window.innerWidth / 18)));
 
-  const createParticle = (seed = Math.random()) => ({
-    x: Math.random() * window.innerWidth,
-    y: Math.random() * window.innerHeight,
-    size: 10 + Math.random() * 13,
-    speed: 0.07 + Math.random() * 0.15,
-    drift: -0.095 + Math.random() * 0.19,
-    rotation: Math.random() * Math.PI * 2,
-    spin: -0.0032 + Math.random() * 0.0064,
-    symbol: symbols[Math.floor(seed * symbols.length) % symbols.length],
-    red: Math.random() > 0.54,
-    alpha: 0.1 + Math.random() * 0.13,
-    pulse: 0,
-    pulseOffsetX: 0,
-    pulseOffsetY: 0,
-  });
+  const createParticle = (seed = Math.random()) => {
+    const range = sizeRange();
+    return {
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      size: range.min + Math.random() * range.spread,
+      speed: 0.06 + Math.random() * 0.13,
+      drift: -0.085 + Math.random() * 0.17,
+      rotation: Math.random() * Math.PI * 2,
+      spin: -0.0028 + Math.random() * 0.0056,
+      symbol: symbols[Math.floor(seed * symbols.length) % symbols.length],
+      red: Math.random() > 0.54,
+      alpha: 0.12 + Math.random() * 0.14,
+      pulse: 0,
+      pulseOffsetX: 0,
+      pulseOffsetY: 0,
+    };
+  };
 
   const resetParticles = () => {
     particles.length = 0;
@@ -305,7 +312,7 @@ const initStageCanvas = () => {
       y,
       life: 0,
       maxLife: window.innerWidth < 700 ? 46 : 54,
-      radius: Math.min(340, Math.max(180, window.innerWidth * 0.22)),
+      radius: Math.min(420, Math.max(220, window.innerWidth * 0.27)),
       seed: Math.random() * Math.PI * 2,
     });
     if (signalPulses.length > 18) signalPulses.splice(0, signalPulses.length - 18);
@@ -314,10 +321,10 @@ const initStageCanvas = () => {
   const drawSignalPulse = (pulse) => {
     const progress = pulse.life / pulse.maxLife;
     const energy = Math.sin(Math.PI * progress);
-    const radius = 26 + pulse.radius * progress;
+    const radius = 34 + pulse.radius * progress;
     const gradient = ctx.createRadialGradient(pulse.x, pulse.y, 0, pulse.x, pulse.y, radius);
-    gradient.addColorStop(0, `rgba(255, 0, 42, ${0.13 * energy})`);
-    gradient.addColorStop(0.42, `rgba(255, 0, 42, ${0.045 * energy})`);
+    gradient.addColorStop(0, `rgba(255, 0, 42, ${0.17 * energy})`);
+    gradient.addColorStop(0.38, `rgba(255, 0, 42, ${0.06 * energy})`);
     gradient.addColorStop(1, 'rgba(255, 0, 42, 0)');
 
     ctx.save();
@@ -325,13 +332,13 @@ const initStageCanvas = () => {
     ctx.fillStyle = gradient;
     ctx.fillRect(pulse.x - radius, pulse.y - radius, radius * 2, radius * 2);
 
-    const blipCount = 5;
+    const blipCount = 6;
     for (let i = 0; i < blipCount; i += 1) {
       const angle = pulse.seed + (Math.PI * 2 * i) / blipCount + progress * 0.9;
       const distance = radius * (0.28 + 0.34 * ((i % 2) + 1));
       const blipX = pulse.x + Math.cos(angle) * distance;
       const blipY = pulse.y + Math.sin(angle) * distance;
-      const size = 2.5 + energy * 5 + (i % 2) * 1.5;
+      const size = 5 + energy * 10 + (i % 2) * 2;
       ctx.save();
       ctx.translate(blipX, blipY);
       ctx.rotate(Math.PI / 4 + angle * 0.25);
@@ -397,14 +404,14 @@ const initStageCanvas = () => {
       });
 
       p.pulse *= 0.91;
-      if (p.y < -40) {
-        p.y = window.innerHeight + 40;
+      if (p.y < -70) {
+        p.y = window.innerHeight + 70;
         p.x = Math.random() * window.innerWidth;
       }
-      if (p.x < -50) p.x = window.innerWidth + 50;
-      if (p.x > window.innerWidth + 50) p.x = -50;
+      if (p.x < -80) p.x = window.innerWidth + 80;
+      if (p.x > window.innerWidth + 80) p.x = -80;
 
-      drawSuit(p, 1 + p.pulse * 1.55, 1 + p.pulse * 0.12);
+      drawSuit(p, 1 + p.pulse * 1.65, 1 + p.pulse * 0.18);
     });
   };
 
