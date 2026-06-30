@@ -274,19 +274,19 @@ const initStageCanvas = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   };
 
-  const particleTarget = () => Math.min(34, Math.max(18, Math.floor(window.innerWidth / 52)));
+  const particleTarget = () => Math.min(90, Math.max(40, Math.floor(window.innerWidth / 24)));
 
   const createParticle = (seed = Math.random()) => ({
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
-    size: 13 + Math.random() * 16,
-    speed: 0.055 + Math.random() * 0.105,
-    drift: -0.055 + Math.random() * 0.11,
+    size: 11 + Math.random() * 14,
+    speed: 0.06 + Math.random() * 0.13,
+    drift: -0.08 + Math.random() * 0.16,
     rotation: Math.random() * Math.PI * 2,
-    spin: -0.0018 + Math.random() * 0.0036,
+    spin: -0.0026 + Math.random() * 0.0052,
     symbol: symbols[Math.floor(seed * symbols.length) % symbols.length],
-    red: Math.random() > 0.6,
-    alpha: 0.085 + Math.random() * 0.09,
+    red: Math.random() > 0.56,
+    alpha: 0.095 + Math.random() * 0.12,
   });
 
   const resetParticles = () => {
@@ -305,10 +305,10 @@ const initStageCanvas = () => {
       const dx = p.x - pointer.x;
       const dy = p.y - pointer.y;
       const distance = Math.hypot(dx, dy);
-      if (distance < 150) {
-        const force = (150 - distance) / 150;
-        p.x += (dx / Math.max(distance, 1)) * force * 0.55;
-        p.y += (dy / Math.max(distance, 1)) * force * 0.55;
+      if (distance < 190) {
+        const force = (190 - distance) / 190;
+        p.x += (dx / Math.max(distance, 1)) * force * 0.72;
+        p.y += (dy / Math.max(distance, 1)) * force * 0.72;
       }
 
       p.y -= p.speed;
