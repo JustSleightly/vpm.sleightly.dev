@@ -3,13 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JustSleightly VPM — VRChat Creator Companion Tools</title>
-  <meta name="description" content="Premium JustSleightly VPM package listing for VRChat Creator Companion tools.">
+  <title>JustSleightly VPM — VRChat Package Listing</title>
+  <meta name="description" content="Static JustSleightly VPM package listing for VRChat Creator Companion.">
   <meta name="theme-color" content="#121212">
   <script type="module" src="https://unpkg.com/@fluentui/web-components"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=20260630-polish2">
   <link rel="icon" href="./favicon.ico">
 </head>
 <body class="theme-dark" data-theme="dark">
@@ -17,12 +15,12 @@
 
   <div class="page-shell">
     <nav class="top-bar" aria-label="Site navigation">
-      <a class="brand-chip" href="https://just.sleightly.dev" target="_blank" rel="noopener">
-        <img src="./logo.svg" alt="" class="brand-mark" width="40" height="40">
+      <a class="brand-chip" href="https://links.sleightly.dev" target="_blank" rel="noopener">
+        <span class="brand-mark" aria-hidden="true">JS</span>
         <span class="brand-wordmark">JustSleightly</span>
       </a>
       <div class="nav-pills" aria-label="Quick links">
-        <a href="https://just.sleightly.dev" target="_blank" rel="noopener">Main Site</a>
+        <a href="https://links.sleightly.dev" target="_blank" rel="noopener">Links</a>
         <a href="https://discord.sleightly.dev" target="_blank" rel="noopener">Discord</a>
         <a href="https://vcc.docs.vrchat.com" target="_blank" rel="noopener">VCC Docs</a>
       </div>
@@ -33,9 +31,9 @@
       <div class="hero-haze" aria-hidden="true"></div>
       <div class="hero-grid">
         <section class="hero-copy">
-          <p class="eyebrow">VRChat Creator Companion</p>
+          <p class="eyebrow">Static VPM Repository</p>
           <h1>JustSleightly VPM</h1>
-          <p class="hero-lede">A focused package listing for polished Unity and VRChat avatar workflow tools — compact, install-ready, and built for creators who care about speed.</p>
+          <p class="hero-lede">A compact package index for JustSleightly VRChat Creator Companion tools. Copy the listing URL, add it to VCC, and inspect package metadata without extra marketing layers.</p>
 
           <div class="metric-row" aria-label="Listing highlights">
             <div class="metric-card">
@@ -43,18 +41,18 @@
               <span>Packages</span>
             </div>
             <div class="metric-card">
-              <strong>VCC</strong>
-              <span>One-Click Add</span>
+              <strong>JSON</strong>
+              <span>Static Index</span>
             </div>
             <div class="metric-card">
               <strong>Unity</strong>
-              <span>Editor Tools</span>
+              <span>Editor Packages</span>
             </div>
           </div>
 
           <div class="install-panel" aria-label="Install listing">
             <div class="install-copy">
-              <span class="install-label">Repository URL</span>
+              <span class="install-label">VPM Repository URL</span>
               <input aria-readonly="true" id="vccUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
             </div>
             <div class="hero-cta-row">
@@ -86,15 +84,33 @@
           </div>
         </section>
 
-        <aside class="brand-stage-card" aria-label="JustSleightly brand preview">
-          <div class="stage-ring" aria-hidden="true"></div>
-          <img src="./logo.svg" alt="JustSleightly logo" class="hero-logo" width="132" height="132">
-          <div class="fan-cards" aria-hidden="true">
-            <span class="mini-card mini-card-left"><b>J</b><em>♠</em></span>
-            <span class="mini-card mini-card-mid"><b>VPM</b><em>♥</em></span>
-            <span class="mini-card mini-card-right"><b>UX</b><em>♦</em></span>
+        <aside class="brand-stage-card manifest-card" aria-label="VPM manifest summary">
+          <div class="manifest-terminal">
+            <div class="manifest-topline">
+              <span class="manifest-status" aria-hidden="true"></span>
+              <span class="text-mono">index.json</span>
+            </div>
+            <dl class="manifest-list">
+              <div>
+                <dt>Repository</dt>
+                <dd class="text-mono">dev.sleightly.vpm-listing</dd>
+              </div>
+              <div>
+                <dt>Host</dt>
+                <dd class="text-mono">vpm.sleightly.dev</dd>
+              </div>
+              <div>
+                <dt>Client</dt>
+                <dd>VRChat Creator Companion</dd>
+              </div>
+              <div>
+                <dt>Surface</dt>
+                <dd>Package search + metadata</dd>
+              </div>
+            </dl>
+            <div class="manifest-command text-mono">vcc://vpm/addRepo?url={{ listingInfo.Url }}</div>
           </div>
-          <p class="stage-kicker">Creator Companion ready</p>
+          <p class="stage-kicker">Static package distribution</p>
         </aside>
       </div>
     </header>
@@ -102,9 +118,9 @@
     <main class="main-content">
       <section class="console-section" aria-label="Package listing">
         <div class="section-heading">
-          <p class="eyebrow">Package Console</p>
-          <h2>Install The Tools Without The Clutter</h2>
-          <p>Search, inspect package metadata, copy the listing URL, or jump straight into VCC.</p>
+          <p class="eyebrow">Repository Contents</p>
+          <h2>Packages, Metadata, Install Actions</h2>
+          <p>Search the index, inspect dependencies and keywords, copy the listing URL, or hand the repository directly to VCC.</p>
         </div>
 
         <div class="toolbar-row">
@@ -112,7 +128,7 @@
             <label class="sr-only" for="searchInput">Search packages</label>
             <input id="searchInput" placeholder="Search packages by name or ID..." type="search" autofocus>
           </div>
-          <div class="toolbar-note"><span aria-hidden="true">✦</span> Lightweight static listing</div>
+          <div class="toolbar-note"><span aria-hidden="true">✦</span> Static index.json</div>
         </div>
 
         <fluent-menu id="rowMoreMenu" hidden>
@@ -262,7 +278,7 @@
       <footer class="site-footer" aria-label="Site footer">
         <a href="{{listingInfo.InfoLink.Url}}" target="_blank" rel="noopener">{{ if listingInfo.InfoLink.Text; listingInfo.InfoLink.Text; else; "Learn More"; end; }}</a>
         <span aria-hidden="true">/</span>
-        <a href="https://just.sleightly.dev" target="_blank" rel="noopener">just.sleightly.dev</a>
+        <a href="https://links.sleightly.dev" target="_blank" rel="noopener">links.sleightly.dev</a>
         <span aria-hidden="true">/</span>
         <span>Built for VRChat Creator Companion</span>
       </footer>

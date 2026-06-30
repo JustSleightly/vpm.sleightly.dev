@@ -5,9 +5,9 @@
     "author":{
         "email":"just@sleightly.dev",
         "name":"JustSleightly",
-        "url":"https://just.sleightly.dev"
+        "url":"https://links.sleightly.dev"
     },
-    "description":"For use with the VRChat Creator Companion",
+    "description":"Static VPM package listing for VRChat Creator Companion",
     "infoLink":{
         "url":"https://discord.sleightly.dev",
         "text":"Discord"
