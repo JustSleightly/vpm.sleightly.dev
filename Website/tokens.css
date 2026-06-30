@@ -1,0 +1,237 @@
+/* design-system/justsleightly/tokens.css
+ * Canonical reusable tokens for the JustSleightly brand system.
+ * Sources: JustSleightly brief, local website globals.css/component behavior,
+ * primary logo JSLogoBig.png, and secondary lockup JSLogoTitleBig.png.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Brand */
+  --js-color-accent: #ff002a;
+  --js-color-title-light: #9e001a;
+  --js-color-button-light: #b3021e;
+  --js-color-bg-light: #c0c0c0;
+  --js-color-hero-dark: #8b0018;
+  --js-color-title-dark: #5c0010;
+  --js-color-button-dark: #8b0015;
+  --js-color-email: #d76050;
+  --js-color-subtext-dark: #98aea5;
+  --js-color-bg-dark: #121212;
+  --js-color-gradient-pink: #b501ff;
+  --js-color-gradient-violet: #3e0156;
+
+  /* Semantic color aliases */
+  --bg: var(--js-color-bg-light);
+  --surface: rgba(240, 240, 240, 0.86);
+  --surface-strong: #ffffff;
+  --surface-muted: rgba(232, 232, 232, 0.7);
+  --fg: #1a1a1a;
+  --fg-2: #4a4a4a;
+  --muted: #4d4d4d;
+  --inverse: #ffffff;
+  --border: rgba(26, 26, 26, 0.16);
+  --border-strong: rgba(26, 26, 26, 0.8);
+  --grid-line: #a6a6a6;
+  --accent: var(--js-color-accent);
+  --accent-on: #ffffff;
+  --accent-subtle: rgba(255, 0, 42, 0.16);
+  --accent-selection: rgba(255, 0, 42, 0.3);
+  --cta: var(--js-color-button-light);
+  --cta-hover: var(--js-color-accent);
+  --titlebar: var(--js-color-title-light);
+  --focus-ring: 0 0 0 4px rgba(255, 0, 42, 0.22);
+
+  /* Status */
+  --success: #2f8f67;
+  --success-bg: rgba(47, 143, 103, 0.14);
+  --warning: #a86f00;
+  --warning-bg: rgba(168, 111, 0, 0.14);
+  --danger: var(--js-color-accent);
+  --danger-bg: rgba(255, 0, 42, 0.14);
+  --info: #517b75;
+  --info-bg: rgba(81, 123, 117, 0.14);
+
+  /* Social and external states */
+  --social-linkedin: #0a66c2;
+  --social-github: #333333;
+  --social-instagram: #e4405f;
+  --social-discord: #5865f2;
+  --social-email: #d14836;
+
+  /* Typography */
+  --font-display: var(--font-ibm-plex-sans), "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body: var(--font-ibm-plex-sans), "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  --text-display-20: 48px;
+  --leading-display-20: 54px;
+  --tracking-display-20: -0.012em;
+  --text-display-10: 40px;
+  --leading-display-10: 48px;
+  --tracking-display-10: -0.01em;
+  --text-title-60: 36px;
+  --leading-title-60: 42px;
+  --tracking-title-60: -0.008em;
+  --text-title-50: 32px;
+  --leading-title-50: 40px;
+  --tracking-title-50: -0.006em;
+  --text-title-40: 28px;
+  --leading-title-40: 36px;
+  --tracking-title-40: -0.004em;
+  --text-title-30: 24px;
+  --leading-title-30: 32px;
+  --tracking-title-30: -0.002em;
+  --text-title-20: 20px;
+  --leading-title-20: 28px;
+  --tracking-title-20: 0;
+  --text-title-10: 16px;
+  --leading-title-10: 22px;
+  --tracking-title-10: 0.002em;
+  --text-body-30: 16px;
+  --leading-body-30: 24px;
+  --text-body-20: 14px;
+  --leading-body-20: 22px;
+  --text-body-10: 12px;
+  --leading-body-10: 18px;
+  --text-label-30: 16px;
+  --leading-label-30: 22px;
+  --text-label-20: 14px;
+  --leading-label-20: 20px;
+  --text-label-10: 12px;
+  --leading-label-10: 16px;
+  --text-label-5: 10px;
+  --leading-label-5: 14px;
+  --text-button-40: 20px;
+  --leading-button-40: 28px;
+  --text-button-30: 16px;
+  --leading-button-30: 22px;
+  --text-button-20: 14px;
+  --leading-button-20: 20px;
+  --text-button-10: 12px;
+  --leading-button-10: 16px;
+  --text-data-40: 24px;
+  --leading-data-40: 36px;
+  --text-data-30: 16px;
+  --leading-data-30: 24px;
+  --text-data-20: 14px;
+  --leading-data-20: 22px;
+  --text-data-10: 12px;
+  --leading-data-10: 18px;
+
+  /* Layout */
+  --container-max: 1200px;
+  --container-gutter-desktop: 48px;
+  --container-gutter-phone: 24px;
+  --nav-height: 80px;
+  --scroll-offset: 80px;
+  --grid-size: 40px;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-30: 120px;
+
+  /* Shape */
+  --radius-xs: 5px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 9999px;
+  --radius-circle: 50%;
+
+  /* Border */
+  --border-width-hairline: 1px;
+  --border-width-strong: 2px;
+
+  /* Elevation */
+  --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-panel: 0 4px 20px rgba(0, 0, 0, 0.15);
+  --shadow-card: 2px 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-card-hover: 4px 8px 24px rgba(0, 0, 0, 0.4);
+  --glow-accent: 0 0 24px rgba(255, 0, 42, 0.22);
+  --spotlight-soft: radial-gradient(circle at 12% 22%, rgba(255, 255, 255, 0.34), rgba(255, 255, 255, 0.12) 9%, rgba(255, 255, 255, 0.04) 22%, transparent 42%);
+  --smoke-trail: radial-gradient(ellipse at 10% 26%, rgba(255, 255, 255, 0.18), transparent 34%);
+
+  /* Motion */
+  --motion-fast: 160ms;
+  --motion-base: 300ms;
+  --motion-reveal: 800ms;
+  --ease-standard: ease;
+  --ease-reveal: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-playful: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+[data-theme="dark"],
+.theme-dark {
+  --bg: var(--js-color-bg-dark);
+  --surface: rgba(30, 30, 30, 0.9);
+  --surface-strong: #171717;
+  --surface-muted: rgba(255, 255, 255, 0.1);
+  --fg: #e0e0e0;
+  --fg-2: #a3a3a3;
+  --muted: #98aea5;
+  --inverse: #1a1a1a;
+  --border: rgba(255, 255, 255, 0.14);
+  --border-strong: rgba(255, 255, 255, 0.8);
+  --grid-line: #262626;
+  --cta: var(--js-color-button-dark);
+  --cta-hover: var(--js-color-accent);
+  --titlebar: var(--js-color-title-dark);
+}
+
+.js-grid-bg {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(ellipse at center, transparent 20%, var(--bg) 82%),
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: auto, var(--grid-size) var(--grid-size), var(--grid-size) var(--grid-size);
+}
+
+.js-type-display {
+  font-family: var(--font-display);
+  font-size: var(--text-display-20);
+  line-height: var(--leading-display-20);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-display-20);
+}
+
+.js-type-title {
+  font-family: var(--font-display);
+  font-size: var(--text-title-40);
+  line-height: var(--leading-title-40);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--tracking-title-40);
+}
+
+.js-type-body {
+  font-family: var(--font-body);
+  font-size: var(--text-body-30);
+  line-height: var(--leading-body-30);
+  font-weight: var(--font-weight-regular);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
