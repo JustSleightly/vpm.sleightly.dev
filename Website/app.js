@@ -1,5 +1,3 @@
-import 'https://unpkg.com/@fluentui/web-components';
-
 const LISTING_URL = "{{ listingInfo.Url }}";
 
 const PACKAGES = {
@@ -9,6 +7,8 @@ const PACKAGES = {
     displayName: "{{ if package.DisplayName; package.DisplayName; end; }}",
     description: "{{ if package.Description; package.Description; end; }}",
     version: "{{ package.Version }}",
+    type: "{{ package.Type }}",
+    zipUrl: "{{ package.ZipUrl }}",
     author: {
       name: "{{ if package.Author.Name; package.Author.Name; end; }}",
       url: "{{ if package.Author.Url; package.Author.Url; end; }}",
@@ -32,11 +32,7 @@ const PACKAGES = {
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-const setTheme = () => {
-  document.body.setAttribute('data-theme', 'dark');
-  document.body.classList.add('theme-dark');
-};
+let activePackageId = '';
 
 const readFieldValue = (field) => field?.value || field?.getAttribute('value') || LISTING_URL;
 
@@ -57,12 +53,12 @@ const copyFieldValue = async (field, button) => {
   }
 
   if (!button) return;
-  const originalAppearance = button.getAttribute('appearance') || 'neutral';
-  button.setAttribute('appearance', 'accent');
-  button.setAttribute('data-copied', 'true');
+  const originalText = button.textContent;
+  button.textContent = 'Copied';
+  button.dataset.copied = 'true';
   window.setTimeout(() => {
-    button.setAttribute('appearance', originalAppearance);
-    button.removeAttribute('data-copied');
+    button.textContent = originalText;
+    delete button.dataset.copied;
   }, 1100);
 };
 
@@ -73,8 +69,8 @@ const openVccListing = () => {
 const setDialogOpen = (dialog, open) => {
   if (!dialog) return;
   dialog.hidden = !open;
-  if (open) dialog.setAttribute('aria-hidden', 'false');
-  else dialog.setAttribute('aria-hidden', 'true');
+  dialog.setAttribute('aria-hidden', open ? 'false' : 'true');
+  if (open) dialog.querySelector('button, a, input')?.focus?.();
 };
 
 const fillPackageInfo = (packageId) => {
@@ -83,6 +79,7 @@ const fillPackageInfo = (packageId) => {
     console.error(`Did not find package ${packageId}. Packages available:`, PACKAGES);
     return;
   }
+  activePackageId = packageId;
 
   $('#packageInfoName').textContent = packageInfo.displayName || packageInfo.name;
   $('#packageInfoId').textContent = packageId;
@@ -91,10 +88,18 @@ const fillPackageInfo = (packageId) => {
 
   const author = $('#packageInfoAuthor');
   author.textContent = packageInfo.author?.name || 'JustSleightly';
-  author.href = packageInfo.author?.url || 'https://just.sleightly.dev';
+  author.href = packageInfo.author?.url || 'https://links.sleightly.dev';
+
+  const download = $('#packageInfoDownloadZip');
+  if (download) {
+    const hasZip = Boolean(packageInfo.zipUrl?.length);
+    download.classList.toggle('hidden', !hasZip);
+    download.href = hasZip ? packageInfo.zipUrl : '#';
+    download.setAttribute('aria-label', `Download ${(packageInfo.displayName || packageInfo.name)} package zip`);
+  }
 
   const keywordWrap = $('#packageInfoKeywords');
-  const keywordSection = keywordWrap?.parentElement;
+  const keywordSection = keywordWrap?.closest('section');
   keywordWrap.replaceChildren();
   if (!packageInfo.keywords?.length) {
     keywordSection?.classList.add('hidden');
@@ -109,7 +114,7 @@ const fillPackageInfo = (packageId) => {
   }
 
   const license = $('#packageInfoLicense');
-  const licenseSection = license?.parentElement;
+  const licenseSection = license?.closest('section');
   const hasLicense = Boolean(packageInfo.license?.length || packageInfo.licensesUrl?.length);
   licenseSection?.classList.toggle('hidden', !hasLicense);
   if (hasLicense) {
@@ -136,7 +141,7 @@ const fillPackageInfo = (packageId) => {
 };
 
 const wirePackageControls = () => {
-  const rows = $$('#packageGrid fluent-data-grid-row[data-package-id]');
+  const rows = $$('#packageGrid .package-row[data-package-id]');
   const countMetric = $('#packageCountMetric');
   if (countMetric) countMetric.textContent = String(rows.length || Object.keys(PACKAGES).length || 0);
 
@@ -147,48 +152,20 @@ const wirePackageControls = () => {
   $$('.rowPackageInfoButton').forEach((button) => {
     button.addEventListener('click', () => fillPackageInfo(button.dataset.packageId));
   });
-
-  const rowMoreMenu = $('#rowMoreMenu');
-  const downloadItem = $('#rowMoreMenuDownload');
-  let activeDownloadUrl = '';
-
-  const hideRowMoreMenu = (event) => {
-    if (rowMoreMenu?.contains(event.target)) return;
-    rowMoreMenu.hidden = true;
-    document.removeEventListener('click', hideRowMoreMenu);
-  };
-
-  $$('.rowMenuButton').forEach((button) => {
-    button.addEventListener('click', (event) => {
-      event.stopPropagation();
-      activeDownloadUrl = button.dataset.packageUrl || '';
-      const rect = button.getBoundingClientRect();
-      rowMoreMenu.style.top = `${window.scrollY + rect.bottom + 8}px`;
-      rowMoreMenu.style.left = `${Math.max(12, window.scrollX + rect.right - 170)}px`;
-      rowMoreMenu.hidden = false;
-      window.setTimeout(() => document.addEventListener('click', hideRowMoreMenu), 1);
-    });
-  });
-
-  downloadItem?.addEventListener('click', () => {
-    if (activeDownloadUrl) window.open(activeDownloadUrl, '_blank', 'noopener');
-    rowMoreMenu.hidden = true;
-  });
 };
 
 const wireSearch = () => {
-  const packageGrid = $('#packageGrid');
   const searchInput = $('#searchInput');
   const emptyState = $('#emptyState');
-  if (!packageGrid || !searchInput) return;
+  if (!searchInput) return;
 
   searchInput.addEventListener('input', () => {
     const query = (searchInput.value || '').trim().toLowerCase();
     let visibleCount = 0;
-    $$('#packageGrid fluent-data-grid-row[data-package-id]').forEach((row) => {
+    $$('#packageGrid .package-row[data-package-id]').forEach((row) => {
       const haystack = `${row.dataset.packageName || ''} ${row.dataset.packageId || ''}`.toLowerCase();
       const visible = !query || haystack.includes(query);
-      row.style.display = visible ? 'grid' : 'none';
+      row.hidden = !visible;
       if (visible) visibleCount += 1;
     });
     if (emptyState) emptyState.hidden = visibleCount !== 0;
@@ -199,19 +176,23 @@ const wireDialogsAndCopy = () => {
   $('#urlBarHelp')?.addEventListener('click', () => setDialogOpen($('#addListingToVccHelp'), true));
   $('#addListingToVccHelpClose')?.addEventListener('click', () => setDialogOpen($('#addListingToVccHelp'), false));
   $('#packageInfoModalClose')?.addEventListener('click', () => setDialogOpen($('#packageInfoModal'), false));
-  $('#packageInfoListingHelp')?.addEventListener('click', () => setDialogOpen($('#addListingToVccHelp'), true));
+  $('#packageInfoAddToVcc')?.addEventListener('click', openVccListing);
 
   $('#vccAddRepoButton')?.addEventListener('click', openVccListing);
   $('#vccUrlFieldCopy')?.addEventListener('click', (event) => copyFieldValue($('#vccUrlField'), event.currentTarget));
   $('#vccListingInfoUrlFieldCopy')?.addEventListener('click', (event) => copyFieldValue($('#vccListingInfoUrlField'), event.currentTarget));
   $('#packageInfoVccUrlFieldCopy')?.addEventListener('click', (event) => copyFieldValue($('#packageInfoVccUrlField'), event.currentTarget));
 
+  $$('.modal-overlay').forEach((overlay) => {
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) setDialogOpen(overlay, false);
+    });
+  });
+
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
     setDialogOpen($('#addListingToVccHelp'), false);
     setDialogOpen($('#packageInfoModal'), false);
-    const menu = $('#rowMoreMenu');
-    if (menu) menu.hidden = true;
   });
 };
 
@@ -220,10 +201,12 @@ const initStageCanvas = () => {
   if (!canvas || prefersReducedMotion()) return;
 
   const ctx = canvas.getContext('2d');
-  const symbols = ['♠', '♥', '♦', '♣', '▰'];
+  if (!ctx) return;
+
+  const symbols = ['♠', '♥', '♦', '♣'];
   const particles = [];
   const pointer = { x: -9999, y: -9999 };
-  const particleCount = Math.min(54, Math.max(26, Math.floor(window.innerWidth / 32)));
+  let frame = 0;
 
   const resize = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -234,25 +217,29 @@ const initStageCanvas = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   };
 
+  const particleTarget = () => Math.min(34, Math.max(18, Math.floor(window.innerWidth / 52)));
+
   const createParticle = (seed = Math.random()) => ({
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
-    size: 14 + Math.random() * 20,
-    speed: 0.12 + Math.random() * 0.28,
-    drift: -0.18 + Math.random() * 0.36,
+    size: 13 + Math.random() * 16,
+    speed: 0.055 + Math.random() * 0.105,
+    drift: -0.055 + Math.random() * 0.11,
     rotation: Math.random() * Math.PI * 2,
-    spin: -0.004 + Math.random() * 0.008,
+    spin: -0.0018 + Math.random() * 0.0036,
     symbol: symbols[Math.floor(seed * symbols.length) % symbols.length],
-    red: Math.random() > 0.54,
-    alpha: 0.16 + Math.random() * 0.24,
+    red: Math.random() > 0.6,
+    alpha: 0.085 + Math.random() * 0.09,
   });
 
   const resetParticles = () => {
     particles.length = 0;
-    for (let i = 0; i < particleCount; i += 1) particles.push(createParticle(i / particleCount));
+    const count = particleTarget();
+    for (let i = 0; i < count; i += 1) particles.push(createParticle(i / count));
   };
 
   const draw = () => {
+    frame = requestAnimationFrame(draw);
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -261,37 +248,34 @@ const initStageCanvas = () => {
       const dx = p.x - pointer.x;
       const dy = p.y - pointer.y;
       const distance = Math.hypot(dx, dy);
-      if (distance < 170) {
-        const force = (170 - distance) / 170;
-        p.x += (dx / Math.max(distance, 1)) * force * 1.4;
-        p.y += (dy / Math.max(distance, 1)) * force * 1.4;
+      if (distance < 150) {
+        const force = (150 - distance) / 150;
+        p.x += (dx / Math.max(distance, 1)) * force * 0.55;
+        p.y += (dy / Math.max(distance, 1)) * force * 0.55;
       }
 
       p.y -= p.speed;
       p.x += p.drift;
       p.rotation += p.spin;
-      if (p.y < -50) {
-        p.y = window.innerHeight + 50;
+      if (p.y < -40) {
+        p.y = window.innerHeight + 40;
         p.x = Math.random() * window.innerWidth;
       }
-      if (p.x < -60) p.x = window.innerWidth + 60;
-      if (p.x > window.innerWidth + 60) p.x = -60;
+      if (p.x < -50) p.x = window.innerWidth + 50;
+      if (p.x > window.innerWidth + 50) p.x = -50;
 
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rotation);
       ctx.font = `700 ${p.size}px "IBM Plex Sans", system-ui, sans-serif`;
       ctx.fillStyle = p.red ? `rgba(255, 0, 42, ${p.alpha})` : `rgba(220, 226, 224, ${p.alpha})`;
-      ctx.shadowColor = p.red ? 'rgba(255,0,42,0.22)' : 'rgba(255,255,255,0.12)';
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = 0;
       ctx.fillText(p.symbol, 0, 0);
       ctx.restore();
     });
-
-    requestAnimationFrame(draw);
   };
 
-  window.addEventListener('resize', () => { resize(); resetParticles(); });
+  window.addEventListener('resize', () => { resize(); resetParticles(); }, { passive: true });
   window.addEventListener('pointermove', (event) => {
     pointer.x = event.clientX;
     pointer.y = event.clientY;
@@ -300,6 +284,10 @@ const initStageCanvas = () => {
     pointer.x = -9999;
     pointer.y = -9999;
   });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) cancelAnimationFrame(frame);
+    else frame = requestAnimationFrame(draw);
+  });
 
   resize();
   resetParticles();
@@ -307,7 +295,8 @@ const initStageCanvas = () => {
 };
 
 const init = () => {
-  setTheme();
+  document.body.setAttribute('data-theme', 'dark');
+  document.body.classList.add('theme-dark');
   wireDialogsAndCopy();
   wireSearch();
   wirePackageControls();
