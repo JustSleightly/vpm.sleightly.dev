@@ -6,7 +6,7 @@
   <title>JustSleightly VPM — VRChat Package Listing</title>
   <meta name="description" content="JustSleightly VRChat Creator Companion package listing.">
   <meta name="theme-color" content="#121212">
-  <link rel="stylesheet" href="styles.css?v=20260630-practical-vpm">
+  <link rel="stylesheet" href="styles.css?v=20260630-vpm-ux-cleanup">
   <link rel="icon" href="./favicon.ico">
 </head>
 <body class="theme-dark" data-theme="dark">
@@ -23,32 +23,27 @@
         <a href="https://discord.sleightly.dev" target="_blank" rel="noopener noreferrer">Discord</a>
         <a href="https://vcc.docs.vrchat.com" target="_blank" rel="noopener noreferrer">VCC Docs</a>
       </div>
-      <span class="status-pill"><span aria-hidden="true"></span> VPM</span>
+      <button type="button" class="button nav-cta" id="navAddRepoButton">Add To VCC</button>
     </nav>
 
     <header class="hero-section" aria-label="JustSleightly VPM packages">
       <div class="hero-grid">
         <section class="hero-copy">
           <p class="eyebrow">VRChat Creator Companion</p>
-          <h1>VPM Packages</h1>
-          <p class="hero-lede">Add the JustSleightly listing to VCC and install avatar tooling packages.</p>
-          <div class="metric-row" aria-label="Listing summary">
-            <span><strong id="packageCountMetric">2</strong> Packages</span>
-            <span>Static index.json</span>
-            <span>Unity editor tools</span>
-          </div>
+          <h1>VCC Packages</h1>
+          <p class="hero-lede">Add the JustSleightly listing to VRChat Creator Companion, then install the avatar tools you actually need.</p>
+          <p class="package-count-line"><strong id="packageCountMetric">2</strong> packages currently listed.</p>
         </section>
 
         <aside class="install-panel" aria-label="Install listing">
           <div class="install-header">
-            <span class="install-label">Repository URL</span>
-            <span class="repo-state"><span aria-hidden="true"></span> Live</span>
+            <span class="install-label">Listing URL</span>
           </div>
           <input aria-readonly="true" id="vccUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
           <div class="action-row">
             <button type="button" class="button primary" id="vccAddRepoButton">Add Listing To VCC</button>
             <button type="button" class="button secondary" id="vccUrlFieldCopy">Copy URL</button>
-            <button type="button" class="button icon-button" id="urlBarHelp" aria-label="How to add this listing to VCC">?</button>
+            <button type="button" class="button secondary help-button" id="urlBarHelp">How To Add</button>
           </div>
         </aside>
       </div>
@@ -68,17 +63,14 @@
 
     <main class="main-content">
       <section class="package-section" aria-label="Package listing">
-        <div class="section-heading">
-          <p class="eyebrow">Repository Contents</p>
-          <h2>Packages</h2>
-        </div>
+        <h2 class="sr-only">Available packages</h2>
 
         <div class="toolbar-row">
           <div class="searchBlock">
             <label class="sr-only" for="searchInput">Search packages</label>
             <input id="searchInput" placeholder="Search packages by name or ID..." type="search" autocomplete="off">
           </div>
-          <a class="button secondary index-link" href="{{ listingInfo.Url }}" target="_blank" rel="noopener noreferrer">Open index.json</a>
+          <a class="button secondary index-link" href="{{ listingInfo.Url }}" target="_blank" rel="noopener noreferrer">Open Listing URL</a>
         </div>
 
         <div class="packages" role="list" id="packageGrid">
@@ -89,16 +81,15 @@
                 <div class="package-copy">
                   <h3 class="packageName">{{ package.DisplayName }}</h3>
                   <p class="caption1">{{ package.Description }}</p>
-                  <p class="caption2 text-mono">{{ package.Name }}</p>
+                  <div class="package-meta-row">
+                    <span class="caption2 text-mono">{{ package.Name }}</span>
+                    <span class="badge package-type-badge">{{ package.Type }}</span>
+                  </div>
                 </div>
-              </div>
-              <div class="package-type-cell">
-                <span class="badge">{{ package.Type }}</span>
               </div>
               <div class="package-action-cell">
                 <button type="button" class="button primary rowAddToVccButton" data-package-id="{{ package.Name }}">Add To VCC</button>
-                <button type="button" title="Package Info" class="button secondary rowPackageInfoButton" data-package-id="{{ package.Name }}" aria-label="Package info for {{ package.DisplayName }}">Info</button>
-                <a class="button icon-button rowDownloadButton" href="{{ package.ZipUrl }}" target="_blank" rel="noopener noreferrer" aria-label="Download {{ package.DisplayName }} package zip">↓</a>
+                <button type="button" title="Package Details" class="button secondary rowPackageInfoButton" data-package-id="{{ package.Name }}" aria-label="Package details for {{ package.DisplayName }}">Package Details</button>
               </div>
             </article>
           {{~ end ~}}
@@ -113,14 +104,14 @@
         <div class="dialog-header">
           <div>
             <p class="eyebrow">VCC Setup</p>
-            <h3 id="addListingToVccHelpTitle">Add The Listing</h3>
+            <h3 id="addListingToVccHelpTitle">Add This Listing To VCC</h3>
           </div>
           <button type="button" class="button icon-button close-button" id="addListingToVccHelpClose" aria-label="Close help dialog">×</button>
         </div>
         <ol class="setup-list">
-          <li>Open VCC → Settings → Packages.</li>
-          <li>Choose <strong>Add Repository</strong>.</li>
-          <li>Paste this URL.</li>
+          <li>Click <strong>Add Listing To VCC</strong> to open VRChat Creator Companion automatically.</li>
+          <li>Or open VCC → Settings → Packages → <strong>Add Repository</strong>.</li>
+          <li>Paste the listing URL below if VCC does not open from your browser.</li>
         </ol>
         <div class="dialog-url-row">
           <input aria-readonly="true" id="vccListingInfoUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
@@ -192,6 +183,6 @@
     {{~ end; ~}}
   </div>
 
-  <script type="module" src="app.js?v=20260630-practical-vpm"></script>
+  <script type="module" src="app.js?v=20260630-vpm-ux-cleanup"></script>
 </body>
 </html>

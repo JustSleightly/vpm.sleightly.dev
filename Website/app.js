@@ -178,6 +178,7 @@ const wireDialogsAndCopy = () => {
   $('#packageInfoModalClose')?.addEventListener('click', () => setDialogOpen($('#packageInfoModal'), false));
   $('#packageInfoAddToVcc')?.addEventListener('click', openVccListing);
 
+  $('#navAddRepoButton')?.addEventListener('click', openVccListing);
   $('#vccAddRepoButton')?.addEventListener('click', openVccListing);
   $('#vccUrlFieldCopy')?.addEventListener('click', (event) => copyFieldValue($('#vccUrlField'), event.currentTarget));
   $('#vccListingInfoUrlFieldCopy')?.addEventListener('click', (event) => copyFieldValue($('#vccListingInfoUrlField'), event.currentTarget));
