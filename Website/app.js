@@ -263,12 +263,12 @@ const initStageCanvas = () => {
   const symbols = ['♠', '♥', '♦', '♣'];
   const particles = [];
   const signalPulses = [];
-  const pointer = { x: -9999, y: -9999 };
+  const pointer = { x: -9999, y: -9999, active: false, lastMove: 0 };
   let frame = 0;
 
   const sizeRange = () => (window.innerWidth < 700
-    ? { min: 15, spread: 18 }
-    : { min: 17, spread: 22 });
+    ? { min: 18, spread: 16 }
+    : { min: 22, spread: 24 });
 
   const resize = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -279,7 +279,11 @@ const initStageCanvas = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   };
 
-  const particleTarget = () => Math.min(128, Math.max(56, Math.floor(window.innerWidth / 18)));
+  const particleTarget = () => {
+    if (window.innerWidth < 560) return 32;
+    if (window.innerWidth < 960) return 46;
+    return Math.min(76, Math.max(54, Math.round((window.innerWidth * window.innerHeight) / 52000)));
+  };
 
   const createParticle = (seed = Math.random()) => {
     const range = sizeRange();
@@ -287,13 +291,15 @@ const initStageCanvas = () => {
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
       size: range.min + Math.random() * range.spread,
-      speed: 0.06 + Math.random() * 0.13,
-      drift: -0.085 + Math.random() * 0.17,
+      speed: 0.16 + Math.random() * 0.34,
+      drift: -0.18 + Math.random() * 0.36,
+      sway: 0.18 + Math.random() * 0.42,
+      phase: Math.random() * Math.PI * 2,
       rotation: Math.random() * Math.PI * 2,
-      spin: -0.0028 + Math.random() * 0.0056,
+      spin: -0.004 + Math.random() * 0.008,
       symbol: symbols[Math.floor(seed * symbols.length) % symbols.length],
       red: Math.random() > 0.54,
-      alpha: 0.12 + Math.random() * 0.14,
+      alpha: 0.13 + Math.random() * 0.13,
       pulse: 0,
       pulseOffsetX: 0,
       pulseOffsetY: 0,
@@ -316,6 +322,23 @@ const initStageCanvas = () => {
       seed: Math.random() * Math.PI * 2,
     });
     if (signalPulses.length > 18) signalPulses.splice(0, signalPulses.length - 18);
+  };
+
+  const drawHoverSpotlight = () => {
+    if (!pointer.active) return;
+    const idle = performance.now() - pointer.lastMove;
+    if (idle > 1200) return;
+    const energy = 1 - idle / 1200;
+    const radius = window.innerWidth < 700 ? 112 : 168;
+    const gradient = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, radius);
+    gradient.addColorStop(0, `rgba(255, 0, 42, ${0.13 * energy})`);
+    gradient.addColorStop(0.42, `rgba(255, 0, 42, ${0.045 * energy})`);
+    gradient.addColorStop(1, 'rgba(255, 0, 42, 0)');
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = gradient;
+    ctx.fillRect(pointer.x - radius, pointer.y - radius, radius * 2, radius * 2);
+    ctx.restore();
   };
 
   const drawSignalPulse = (pulse) => {
@@ -365,6 +388,7 @@ const initStageCanvas = () => {
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    drawHoverSpotlight();
 
     for (let i = signalPulses.length - 1; i >= 0; i -= 1) {
       const pulse = signalPulses[i];
@@ -377,14 +401,22 @@ const initStageCanvas = () => {
     }
 
     particles.forEach((p) => {
-      p.y -= p.speed;
-      p.x += p.drift;
+      p.y += p.speed;
+      p.x += p.drift + Math.sin(performance.now() * 0.00055 + p.phase) * p.sway * 0.018;
       p.rotation += p.spin;
       p.pulseOffsetX *= 0.82;
       p.pulseOffsetY *= 0.82;
 
       const hoverDistance = Math.hypot(p.x - pointer.x, p.y - pointer.y);
-      if (hoverDistance < 150) p.pulse = Math.max(p.pulse, (1 - hoverDistance / 150) * 0.28);
+      if (pointer.active && performance.now() - pointer.lastMove < 1200 && hoverDistance < (window.innerWidth < 700 ? 128 : 188)) {
+        const radius = window.innerWidth < 700 ? 128 : 188;
+        const falloff = 1 - hoverDistance / radius;
+        const hoverStrength = falloff * falloff;
+        p.pulse = Math.max(p.pulse, hoverStrength * 0.72);
+        p.rotation += (p.x - pointer.x) / radius * 0.012;
+        p.pulseOffsetX += Math.sin(p.phase + frame * 0.0009) * hoverStrength * 0.55;
+        p.pulseOffsetY += Math.cos(p.phase + frame * 0.0009) * hoverStrength * 0.55;
+      }
 
       signalPulses.forEach((pulse) => {
         const progress = pulse.life / pulse.maxLife;
@@ -404,8 +436,8 @@ const initStageCanvas = () => {
       });
 
       p.pulse *= 0.91;
-      if (p.y < -70) {
-        p.y = window.innerHeight + 70;
+      if (p.y > window.innerHeight + 80) {
+        p.y = -80;
         p.x = Math.random() * window.innerWidth;
       }
       if (p.x < -80) p.x = window.innerWidth + 80;
@@ -419,16 +451,22 @@ const initStageCanvas = () => {
   window.addEventListener('pointermove', (event) => {
     pointer.x = event.clientX;
     pointer.y = event.clientY;
+    pointer.active = true;
+    pointer.lastMove = performance.now();
   }, { passive: true });
   window.addEventListener('pointerdown', (event) => {
     pointer.x = event.clientX;
     pointer.y = event.clientY;
+    pointer.active = true;
+    pointer.lastMove = performance.now();
     addSignalPulse(event.clientX, event.clientY);
   }, { passive: true });
   window.addEventListener('pointerleave', () => {
     pointer.x = -9999;
     pointer.y = -9999;
+    pointer.active = false;
   });
+  window.addEventListener('blur', () => { pointer.active = false; });
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) cancelAnimationFrame(frame);
     else frame = requestAnimationFrame(draw);
