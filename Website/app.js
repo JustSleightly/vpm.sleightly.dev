@@ -262,8 +262,8 @@ const initStageCanvas = () => {
 
   const symbols = ['♠', '♥', '♦', '♣'];
   const particles = [];
+  const signalPulses = [];
   const pointer = { x: -9999, y: -9999 };
-  const focus = { x: -9999, y: -9999, life: 0, maxLife: 0, radius: 0, angle: 0 };
   let frame = 0;
 
   const resize = () => {
@@ -289,6 +289,8 @@ const initStageCanvas = () => {
     red: Math.random() > 0.54,
     alpha: 0.1 + Math.random() * 0.13,
     pulse: 0,
+    pulseOffsetX: 0,
+    pulseOffsetY: 0,
   });
 
   const resetParticles = () => {
@@ -297,35 +299,52 @@ const initStageCanvas = () => {
     for (let i = 0; i < count; i += 1) particles.push(createParticle(i / count));
   };
 
-  const activateFocus = (x, y) => {
-    focus.x = x;
-    focus.y = y;
-    focus.life = 1;
-    focus.maxLife = window.innerWidth < 700 ? 78 : 96;
-    focus.radius = Math.min(380, Math.max(220, window.innerWidth * 0.24));
-    focus.angle = 0;
+  const addSignalPulse = (x, y) => {
+    signalPulses.push({
+      x,
+      y,
+      life: 0,
+      maxLife: window.innerWidth < 700 ? 46 : 54,
+      radius: Math.min(340, Math.max(180, window.innerWidth * 0.22)),
+      seed: Math.random() * Math.PI * 2,
+    });
+    if (signalPulses.length > 18) signalPulses.splice(0, signalPulses.length - 18);
   };
 
-  const drawFocusHalo = (progress, energy) => {
-    const ringRadius = 34 + focus.radius * 0.48 * progress;
+  const drawSignalPulse = (pulse) => {
+    const progress = pulse.life / pulse.maxLife;
+    const energy = Math.sin(Math.PI * progress);
+    const radius = 26 + pulse.radius * progress;
+    const gradient = ctx.createRadialGradient(pulse.x, pulse.y, 0, pulse.x, pulse.y, radius);
+    gradient.addColorStop(0, `rgba(255, 0, 42, ${0.13 * energy})`);
+    gradient.addColorStop(0.42, `rgba(255, 0, 42, ${0.045 * energy})`);
+    gradient.addColorStop(1, 'rgba(255, 0, 42, 0)');
+
     ctx.save();
-    ctx.translate(focus.x, focus.y);
-    ctx.rotate(focus.angle * 0.45);
-    ctx.lineWidth = 1 + energy * 1.2;
-    ctx.strokeStyle = `rgba(255, 0, 42, ${0.18 * energy})`;
-    ctx.beginPath();
-    ctx.arc(0, 0, ringRadius, 0.18, Math.PI * 1.14);
-    ctx.stroke();
-    ctx.strokeStyle = `rgba(230, 236, 232, ${0.14 * energy})`;
-    ctx.beginPath();
-    ctx.arc(0, 0, ringRadius * 0.68, Math.PI * 1.2, Math.PI * 2.05);
-    ctx.stroke();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = gradient;
+    ctx.fillRect(pulse.x - radius, pulse.y - radius, radius * 2, radius * 2);
+
+    const blipCount = 5;
+    for (let i = 0; i < blipCount; i += 1) {
+      const angle = pulse.seed + (Math.PI * 2 * i) / blipCount + progress * 0.9;
+      const distance = radius * (0.28 + 0.34 * ((i % 2) + 1));
+      const blipX = pulse.x + Math.cos(angle) * distance;
+      const blipY = pulse.y + Math.sin(angle) * distance;
+      const size = 2.5 + energy * 5 + (i % 2) * 1.5;
+      ctx.save();
+      ctx.translate(blipX, blipY);
+      ctx.rotate(Math.PI / 4 + angle * 0.25);
+      ctx.fillStyle = i % 2 === 0 ? `rgba(255, 0, 42, ${0.42 * energy})` : `rgba(230, 236, 232, ${0.32 * energy})`;
+      ctx.fillRect(-size / 2, -size / 2, size, size);
+      ctx.restore();
+    }
     ctx.restore();
   };
 
   const drawSuit = (particle, alphaScale = 1, sizeScale = 1) => {
     ctx.save();
-    ctx.translate(particle.x, particle.y);
+    ctx.translate(particle.x + particle.pulseOffsetX, particle.y + particle.pulseOffsetY);
     ctx.rotate(particle.rotation);
     ctx.font = `700 ${particle.size * sizeScale}px "IBM Plex Sans", system-ui, sans-serif`;
     ctx.fillStyle = particle.red ? `rgba(255, 0, 42, ${particle.alpha * alphaScale})` : `rgba(220, 226, 224, ${particle.alpha * alphaScale})`;
@@ -340,43 +359,44 @@ const initStageCanvas = () => {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    const focusActive = focus.life > 0 && focus.life <= focus.maxLife;
-    const focusProgress = focusActive ? focus.life / focus.maxLife : 0;
-    const focusEnergy = focusActive ? Math.sin(Math.PI * focusProgress) : 0;
-    if (focusActive) {
-      focus.life += 1;
-      focus.angle += 0.035 + focusEnergy * 0.025;
-      drawFocusHalo(focusProgress, focusEnergy);
+    for (let i = signalPulses.length - 1; i >= 0; i -= 1) {
+      const pulse = signalPulses[i];
+      pulse.life += 1;
+      if (pulse.life >= pulse.maxLife) {
+        signalPulses.splice(i, 1);
+      } else {
+        drawSignalPulse(pulse);
+      }
     }
 
     particles.forEach((p) => {
       p.y -= p.speed;
       p.x += p.drift;
       p.rotation += p.spin;
+      p.pulseOffsetX *= 0.82;
+      p.pulseOffsetY *= 0.82;
 
       const hoverDistance = Math.hypot(p.x - pointer.x, p.y - pointer.y);
       if (hoverDistance < 150) p.pulse = Math.max(p.pulse, (1 - hoverDistance / 150) * 0.28);
 
-      if (focusActive) {
-        const dx = focus.x - p.x;
-        const dy = focus.y - p.y;
+      signalPulses.forEach((pulse) => {
+        const progress = pulse.life / pulse.maxLife;
+        const energy = Math.sin(Math.PI * progress);
+        const dx = p.x - pulse.x;
+        const dy = p.y - pulse.y;
         const distance = Math.hypot(dx, dy);
-        if (distance < focus.radius) {
-          const falloff = 1 - distance / focus.radius;
-          const strength = falloff * focusEnergy;
-          const safeDistance = Math.max(distance, 1);
-          const inwardX = dx / safeDistance;
-          const inwardY = dy / safeDistance;
-          const tangentX = -inwardY;
-          const tangentY = inwardX;
-          p.x += tangentX * strength * 1.35 + inwardX * strength * 0.22;
-          p.y += tangentY * strength * 1.35 + inwardY * strength * 0.22;
-          p.rotation += strength * 0.032;
-          p.pulse = Math.max(p.pulse, strength * 0.88);
+        if (distance < pulse.radius) {
+          const falloff = 1 - distance / pulse.radius;
+          const wave = 0.5 + 0.5 * Math.sin(falloff * Math.PI * 4 - progress * Math.PI * 3 + pulse.seed);
+          const strength = falloff * energy * (0.45 + wave * 0.55);
+          p.rotation += strength * 0.012;
+          p.pulse = Math.max(p.pulse, strength * 0.68);
+          p.pulseOffsetX += Math.cos(pulse.seed + distance * 0.035) * strength * 0.45;
+          p.pulseOffsetY += Math.sin(pulse.seed + distance * 0.035) * strength * 0.45;
         }
-      }
+      });
 
-      p.pulse *= 0.92;
+      p.pulse *= 0.91;
       if (p.y < -40) {
         p.y = window.innerHeight + 40;
         p.x = Math.random() * window.innerWidth;
@@ -384,11 +404,11 @@ const initStageCanvas = () => {
       if (p.x < -50) p.x = window.innerWidth + 50;
       if (p.x > window.innerWidth + 50) p.x = -50;
 
-      drawSuit(p, 1 + p.pulse * 1.45, 1 + p.pulse * 0.14);
+      drawSuit(p, 1 + p.pulse * 1.55, 1 + p.pulse * 0.12);
     });
   };
 
-  window.addEventListener('resize', () => { resize(); resetParticles(); }, { passive: true });
+  window.addEventListener('resize', () => { resize(); resetParticles(); signalPulses.length = 0; }, { passive: true });
   window.addEventListener('pointermove', (event) => {
     pointer.x = event.clientX;
     pointer.y = event.clientY;
@@ -396,7 +416,7 @@ const initStageCanvas = () => {
   window.addEventListener('pointerdown', (event) => {
     pointer.x = event.clientX;
     pointer.y = event.clientY;
-    activateFocus(event.clientX, event.clientY);
+    addSignalPulse(event.clientX, event.clientY);
   }, { passive: true });
   window.addEventListener('pointerleave', () => {
     pointer.x = -9999;
