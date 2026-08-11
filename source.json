@@ -1,13 +1,13 @@
 {
-    "name":"JustSleightly's VPM Packages",
+    "name": "JustSleightly's VPM Packages",
     "id":"dev.sleightly.vpm-listing",
     "url":"https://vpm.sleightly.dev/index.json",
     "author":{
         "email":"just@sleightly.dev",
         "name":"JustSleightly",
-        "url":"https://just.sleightly.dev"
+        "url":"https://links.sleightly.dev"
     },
-    "description":"For use with the VRChat Creator Companion",
+    "description":"Scripts, prefabs, animations, and other assets made for Unity/VRChat",
     "infoLink":{
         "url":"https://discord.sleightly.dev",
         "text":"Discord"

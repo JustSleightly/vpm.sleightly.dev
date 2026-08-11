@@ -1,5 +1,3 @@
-import { baseLayerLuminance, StandardLuminance } from 'https://unpkg.com/@fluentui/web-components';
-
 const LISTING_URL = "{{ listingInfo.Url }}";
 
 const PACKAGES = {
@@ -9,6 +7,8 @@ const PACKAGES = {
     displayName: "{{ if package.DisplayName; package.DisplayName; end; }}",
     description: "{{ if package.Description; package.Description; end; }}",
     version: "{{ package.Version }}",
+    type: "{{ package.Type }}",
+    zipUrl: "{{ package.ZipUrl }}",
     author: {
       name: "{{ if package.Author.Name; package.Author.Name; end; }}",
       url: "{{ if package.Author.Url; package.Author.Url; end; }}",
@@ -29,203 +29,465 @@ const PACKAGES = {
 {{~ end ~}}
 };
 
-const setTheme = () => {
-  const isDarkTheme = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
-  if (isDarkTheme()) {
-    baseLayerLuminance.setValueFor(document.documentElement, StandardLuminance.DarkMode);
+const $ = (selector, root = document) => root.querySelector(selector);
+const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+const prefersReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let activePackageId = '';
+
+const safeHttpUrl = (value, fallback = '') => {
+  try {
+    const url = new URL(value);
+    return ['http:', 'https:'].includes(url.protocol) ? url.href : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const titleCaseSegment = (segment = '') => segment
+  .split(/[-_.\s]+/)
+  .filter(Boolean)
+  .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+  .join('');
+
+const deriveRepoUrl = (packageInfo) => {
+  const candidates = [packageInfo.zipUrl, packageInfo.url, packageInfo.repoUrl, packageInfo.repositoryUrl, packageInfo.sourceUrl];
+  for (const candidate of candidates) {
+    const safeUrl = safeHttpUrl(candidate);
+    const match = safeUrl.match(/^https:\/\/github\.com\/([^/?#]+)\/([^/?#]+)(?:[/?#]|$)/i);
+    if (match) return `https://github.com/${match[1]}/${match[2]}`;
+  }
+
+  const inferredName = titleCaseSegment((packageInfo.name || '').split('.').pop()) || titleCaseSegment(packageInfo.displayName?.replace(/^JS[-\s]*/i, '')) || 'Packages';
+  return `https://github.com/JustSleightly/${inferredName}`;
+};
+
+const deriveReleaseAssetUrls = (packageInfo) => {
+  const zipUrl = safeHttpUrl(packageInfo.zipUrl || packageInfo.url);
+  if (!zipUrl) return { zipUrl: '', unityPackageUrl: '', packageJsonUrl: '' };
+
+  const url = new URL(zipUrl);
+  const pathParts = url.pathname.split('/');
+  const assetName = pathParts.pop() || '';
+  const releasePath = pathParts.join('/');
+  const unityAssetName = assetName.replace(/\.zip$/i, '.unitypackage');
+
+  return {
+    zipUrl,
+    unityPackageUrl: unityAssetName && unityAssetName !== assetName ? `${url.origin}${releasePath}/${unityAssetName}` : '',
+    packageJsonUrl: `${url.origin}${releasePath}/package.json`,
+  };
+};
+
+const setDownloadLink = (selector, href, label, packageInfo) => {
+  const link = $(selector);
+  if (!link) return;
+  const safeHref = safeHttpUrl(href);
+  link.classList.toggle('hidden', !safeHref);
+  link.href = safeHref || '#';
+  link.setAttribute('aria-label', `Download ${(packageInfo.displayName || packageInfo.name)} ${label}`);
+};
+
+const readFieldValue = (field) => field?.value || field?.getAttribute('value') || LISTING_URL;
+
+const copyFieldValue = async (field, button) => {
+  const value = readFieldValue(field);
+  field?.select?.();
+  try {
+    await navigator.clipboard.writeText(value);
+  } catch {
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.append(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    textarea.remove();
+  }
+
+  if (!button) return;
+  const originalText = button.textContent;
+  button.textContent = 'Copied';
+  button.dataset.copied = 'true';
+  window.setTimeout(() => {
+    button.textContent = originalText;
+    delete button.dataset.copied;
+  }, 1100);
+};
+
+const openVccListing = () => {
+  window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`);
+};
+
+const setDialogOpen = (dialog, open) => {
+  if (!dialog) return;
+  dialog.hidden = !open;
+  dialog.setAttribute('aria-hidden', open ? 'false' : 'true');
+  if (open) dialog.querySelector('button, a, input')?.focus?.();
+};
+
+const fillPackageInfo = (packageId) => {
+  const packageInfo = PACKAGES?.[packageId];
+  if (!packageInfo) {
+    console.error(`Did not find package ${packageId}. Packages available:`, PACKAGES);
+    return;
+  }
+  activePackageId = packageId;
+
+  $('#packageInfoName').textContent = packageInfo.displayName || packageInfo.name;
+  $('#packageInfoId').textContent = packageId;
+  $('#packageInfoVersion').textContent = packageInfo.version ? `v${packageInfo.version}` : '';
+  $('#packageInfoDescription').textContent = packageInfo.description || 'No description provided.';
+
+  const author = $('#packageInfoAuthor');
+  author.textContent = packageInfo.author?.name || 'JustSleightly';
+  author.href = packageInfo.author?.url || 'https://links.sleightly.dev';
+
+  const releaseAssetUrls = deriveReleaseAssetUrls(packageInfo);
+  setDownloadLink('#packageInfoDownloadZip', releaseAssetUrls.zipUrl, 'package ZIP', packageInfo);
+  setDownloadLink('#packageInfoDownloadUnityPackage', releaseAssetUrls.unityPackageUrl, 'Unity Package', packageInfo);
+  setDownloadLink('#packageInfoDownloadPackageJson', releaseAssetUrls.packageJsonUrl, 'package.json', packageInfo);
+
+  const keywordWrap = $('#packageInfoKeywords');
+  const keywordSection = keywordWrap?.closest('section');
+  keywordWrap.replaceChildren();
+  if (!packageInfo.keywords?.length) {
+    keywordSection?.classList.add('hidden');
   } else {
-    baseLayerLuminance.setValueFor(document.documentElement, StandardLuminance.LightMode);
+    keywordSection?.classList.remove('hidden');
+    packageInfo.keywords.forEach((keyword) => {
+      const chip = document.createElement('span');
+      chip.className = 'badge';
+      chip.textContent = keyword;
+      keywordWrap.append(chip);
+    });
   }
-}
 
-(() => {
-  setTheme();
+  const repoUrl = deriveRepoUrl(packageInfo);
+  const repoLabel = repoUrl.replace(/^https:\/\/github\.com\//i, '');
+  const repoName = $('#packageInfoRepoName');
+  const repoLink = $('#packageInfoRepoLink');
+  const docsLink = $('#packageInfoDocsLink');
+  if (repoName) repoName.textContent = repoLabel;
+  if (repoLink) {
+    repoLink.href = repoUrl;
+    repoLink.setAttribute('aria-label', `Browse ${repoLabel} on GitHub`);
+  }
+  if (docsLink) {
+    docsLink.href = `${repoUrl}#readme`;
+    docsLink.setAttribute('aria-label', `Read ${repoLabel} README documentation`);
+  }
 
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    setTheme();
+  const dependencies = $('#packageInfoDependencies');
+  dependencies.replaceChildren();
+  const dependencyEntries = Object.entries(packageInfo.dependencies || {});
+  if (!dependencyEntries.length) {
+    const li = document.createElement('li');
+    li.textContent = 'No external VPM dependencies listed.';
+    dependencies.append(li);
+  } else {
+    dependencyEntries.forEach(([name, version]) => {
+      const li = document.createElement('li');
+      li.textContent = `${name} @ ${version}`;
+      dependencies.append(li);
+    });
+  }
+
+  setDialogOpen($('#packageInfoModal'), true);
+};
+
+const wirePackageControls = () => {
+  const rows = $$('#packageGrid .package-row[data-package-id]');
+  const countMetric = $('#packageCountMetric');
+  if (countMetric) countMetric.textContent = String(rows.length || Object.keys(PACKAGES).length || 0);
+
+  $$('.rowAddToVccButton').forEach((button) => {
+    button.addEventListener('click', openVccListing);
   });
 
-  const packageGrid = document.getElementById('packageGrid');
+  $$('.rowPackageInfoButton').forEach((button) => {
+    button.addEventListener('click', () => fillPackageInfo(button.dataset.packageId));
+  });
+};
 
-  const searchInput = document.getElementById('searchInput');
-  searchInput.addEventListener('input', ({ target: { value = '' }}) => {
-    const items = packageGrid.querySelectorAll('fluent-data-grid-row[row-type="default"]');
-    items.forEach(item => {
-      if (value === '') {
-        item.style.display = 'grid';
-        return;
-      }
-      if (
-        item.dataset?.packageName?.toLowerCase()?.includes(value.toLowerCase()) ||
-        item.dataset?.packageId?.toLowerCase()?.includes(value.toLowerCase())
-      ) {
-        item.style.display = 'grid';
-      } else {
-        item.style.display = 'none';
-      }
+const wireSearch = () => {
+  const searchInput = $('#searchInput');
+  const emptyState = $('#emptyState');
+  if (!searchInput) return;
+
+  searchInput.addEventListener('input', () => {
+    const query = (searchInput.value || '').trim().toLowerCase();
+    let visibleCount = 0;
+    $$('#packageGrid .package-row[data-package-id]').forEach((row) => {
+      const haystack = `${row.dataset.packageName || ''} ${row.dataset.packageId || ''}`.toLowerCase();
+      const visible = !query || haystack.includes(query);
+      row.hidden = !visible;
+      if (visible) visibleCount += 1;
+    });
+    if (emptyState) emptyState.hidden = visibleCount !== 0;
+  });
+};
+
+const wireDialogsAndCopy = () => {
+  $('#urlBarHelp')?.addEventListener('click', () => setDialogOpen($('#addListingToVccHelp'), true));
+  $('#addListingToVccHelpClose')?.addEventListener('click', () => setDialogOpen($('#addListingToVccHelp'), false));
+  $('#packageInfoModalClose')?.addEventListener('click', () => setDialogOpen($('#packageInfoModal'), false));
+  $('#packageInfoAddToVcc')?.addEventListener('click', openVccListing);
+
+  $('#navAddRepoButton')?.addEventListener('click', openVccListing);
+  $('#vccAddRepoButton')?.addEventListener('click', openVccListing);
+  $('#vccUrlFieldCopy')?.addEventListener('click', (event) => copyFieldValue($('#vccUrlField'), event.currentTarget));
+  $('#vccListingInfoUrlFieldCopy')?.addEventListener('click', (event) => copyFieldValue($('#vccListingInfoUrlField'), event.currentTarget));
+  $('#packageInfoVccUrlFieldCopy')?.addEventListener('click', (event) => copyFieldValue($('#packageInfoVccUrlField'), event.currentTarget));
+
+  $$('.modal-overlay').forEach((overlay) => {
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) setDialogOpen(overlay, false);
     });
   });
 
-  const urlBarHelpButton = document.getElementById('urlBarHelp');
-  const addListingToVccHelp = document.getElementById('addListingToVccHelp');
-  urlBarHelpButton.addEventListener('click', () => {
-    addListingToVccHelp.hidden = false;
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    setDialogOpen($('#addListingToVccHelp'), false);
+    setDialogOpen($('#packageInfoModal'), false);
   });
-  const addListingToVccHelpClose = document.getElementById('addListingToVccHelpClose');
-  addListingToVccHelpClose.addEventListener('click', () => {
-    addListingToVccHelp.hidden = true;
-  });
+};
 
-  const vccListingInfoUrlFieldCopy = document.getElementById('vccListingInfoUrlFieldCopy');
-  vccListingInfoUrlFieldCopy.addEventListener('click', () => {
-    const vccUrlField = document.getElementById('vccListingInfoUrlField');
-    vccUrlField.select();
-    navigator.clipboard.writeText(vccUrlField.value);
-    vccUrlFieldCopy.appearance = 'accent';
-    setTimeout(() => {
-      vccUrlFieldCopy.appearance = 'neutral';
-    }, 1000);
-  });
+const initStageCanvas = () => {
+  const canvas = $('#stageCanvas');
+  if (!canvas || prefersReducedMotion()) return;
 
-  const vccAddRepoButton = document.getElementById('vccAddRepoButton');
-  vccAddRepoButton.addEventListener('click', () => window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`));
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
 
-  const vccUrlFieldCopy = document.getElementById('vccUrlFieldCopy');
-  vccUrlFieldCopy.addEventListener('click', () => {
-    const vccUrlField = document.getElementById('vccUrlField');
-    vccUrlField.select();
-    navigator.clipboard.writeText(vccUrlField.value);
-    vccUrlFieldCopy.appearance = 'accent';
-    setTimeout(() => {
-      vccUrlFieldCopy.appearance = 'neutral';
-    }, 1000);
-  });
+  const symbols = ['♠', '♥', '♦', '♣'];
+  const particles = [];
+  const signalPulses = [];
+  const pointer = { x: -9999, y: -9999, active: false, lastMove: 0 };
+  let frame = 0;
 
-  const rowMoreMenu = document.getElementById('rowMoreMenu');
-  const hideRowMoreMenu = e => {
-    if (rowMoreMenu.contains(e.target)) return;
-    document.removeEventListener('click', hideRowMoreMenu);
-    rowMoreMenu.hidden = true;
-  }
+  const sizeRange = () => (window.innerWidth < 700
+    ? { min: 18, spread: 16 }
+    : { min: 22, spread: 24 });
 
-  const rowMenuButtons = document.querySelectorAll('.rowMenuButton');
-  rowMenuButtons.forEach(button => {
-    button.addEventListener('click', e => {
-      if (rowMoreMenu?.hidden) {
-        rowMoreMenu.style.top = `${e.clientY + e.target.clientHeight}px`;
-        rowMoreMenu.style.left = `${e.clientX - 120}px`;
-        rowMoreMenu.hidden = false;
+  const resize = () => {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(window.innerWidth * dpr);
+    canvas.height = Math.floor(window.innerHeight * dpr);
+    canvas.style.width = `${window.innerWidth}px`;
+    canvas.style.height = `${window.innerHeight}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  };
 
-        const downloadLink = rowMoreMenu.querySelector('#rowMoreMenuDownload');
-        const downloadListener = () => {
-          window.open(e?.target?.dataset?.packageUrl, '_blank');
+  const particleTarget = () => {
+    if (window.innerWidth < 560) return 32;
+    if (window.innerWidth < 960) return 46;
+    return Math.min(76, Math.max(54, Math.round((window.innerWidth * window.innerHeight) / 52000)));
+  };
+
+  const createParticle = (seed = Math.random()) => {
+    const range = sizeRange();
+    return {
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      size: range.min + Math.random() * range.spread,
+      speed: 0.16 + Math.random() * 0.34,
+      drift: -0.18 + Math.random() * 0.36,
+      sway: 0.18 + Math.random() * 0.42,
+      phase: Math.random() * Math.PI * 2,
+      rotation: Math.random() * Math.PI * 2,
+      spin: -0.004 + Math.random() * 0.008,
+      symbol: symbols[Math.floor(seed * symbols.length) % symbols.length],
+      red: Math.random() > 0.54,
+      alpha: 0.13 + Math.random() * 0.13,
+      pulse: 0,
+      pulseOffsetX: 0,
+      pulseOffsetY: 0,
+    };
+  };
+
+  const resetParticles = () => {
+    particles.length = 0;
+    const count = particleTarget();
+    for (let i = 0; i < count; i += 1) particles.push(createParticle(i / count));
+  };
+
+  const addSignalPulse = (x, y) => {
+    signalPulses.push({
+      x,
+      y,
+      life: 0,
+      maxLife: window.innerWidth < 700 ? 46 : 54,
+      radius: Math.min(420, Math.max(220, window.innerWidth * 0.27)),
+      seed: Math.random() * Math.PI * 2,
+    });
+    if (signalPulses.length > 18) signalPulses.splice(0, signalPulses.length - 18);
+  };
+
+  const drawHoverSpotlight = () => {
+    if (!pointer.active) return;
+    const idle = performance.now() - pointer.lastMove;
+    if (idle > 1200) return;
+    const energy = 1 - idle / 1200;
+    const radius = window.innerWidth < 700 ? 112 : 168;
+    const gradient = ctx.createRadialGradient(pointer.x, pointer.y, 0, pointer.x, pointer.y, radius);
+    gradient.addColorStop(0, `rgba(255, 0, 42, ${0.13 * energy})`);
+    gradient.addColorStop(0.42, `rgba(255, 0, 42, ${0.045 * energy})`);
+    gradient.addColorStop(1, 'rgba(255, 0, 42, 0)');
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = gradient;
+    ctx.fillRect(pointer.x - radius, pointer.y - radius, radius * 2, radius * 2);
+    ctx.restore();
+  };
+
+  const drawSignalPulse = (pulse) => {
+    const progress = pulse.life / pulse.maxLife;
+    const energy = Math.sin(Math.PI * progress);
+    const radius = 34 + pulse.radius * progress;
+    const gradient = ctx.createRadialGradient(pulse.x, pulse.y, 0, pulse.x, pulse.y, radius);
+    gradient.addColorStop(0, `rgba(255, 0, 42, ${0.17 * energy})`);
+    gradient.addColorStop(0.38, `rgba(255, 0, 42, ${0.06 * energy})`);
+    gradient.addColorStop(1, 'rgba(255, 0, 42, 0)');
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = gradient;
+    ctx.fillRect(pulse.x - radius, pulse.y - radius, radius * 2, radius * 2);
+
+    const blipCount = 6;
+    for (let i = 0; i < blipCount; i += 1) {
+      const angle = pulse.seed + (Math.PI * 2 * i) / blipCount + progress * 0.9;
+      const distance = radius * (0.28 + 0.34 * ((i % 2) + 1));
+      const blipX = pulse.x + Math.cos(angle) * distance;
+      const blipY = pulse.y + Math.sin(angle) * distance;
+      const size = 5 + energy * 10 + (i % 2) * 2;
+      ctx.save();
+      ctx.translate(blipX, blipY);
+      ctx.rotate(Math.PI / 4 + angle * 0.25);
+      ctx.fillStyle = i % 2 === 0 ? `rgba(255, 0, 42, ${0.42 * energy})` : `rgba(230, 236, 232, ${0.32 * energy})`;
+      ctx.fillRect(-size / 2, -size / 2, size, size);
+      ctx.restore();
+    }
+    ctx.restore();
+  };
+
+  const drawSuit = (particle, alphaScale = 1, sizeScale = 1) => {
+    ctx.save();
+    ctx.translate(particle.x + particle.pulseOffsetX, particle.y + particle.pulseOffsetY);
+    ctx.rotate(particle.rotation);
+    ctx.font = `700 ${particle.size * sizeScale}px "IBM Plex Sans", system-ui, sans-serif`;
+    ctx.fillStyle = particle.red ? `rgba(255, 0, 42, ${particle.alpha * alphaScale})` : `rgba(220, 226, 224, ${particle.alpha * alphaScale})`;
+    ctx.shadowBlur = 0;
+    ctx.fillText(particle.symbol, 0, 0);
+    ctx.restore();
+  };
+
+  const draw = () => {
+    frame = requestAnimationFrame(draw);
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    drawHoverSpotlight();
+
+    for (let i = signalPulses.length - 1; i >= 0; i -= 1) {
+      const pulse = signalPulses[i];
+      pulse.life += 1;
+      if (pulse.life >= pulse.maxLife) {
+        signalPulses.splice(i, 1);
+      } else {
+        drawSignalPulse(pulse);
+      }
+    }
+
+    particles.forEach((p) => {
+      p.y += p.speed;
+      p.x += p.drift + Math.sin(performance.now() * 0.00055 + p.phase) * p.sway * 0.018;
+      p.rotation += p.spin;
+      p.pulseOffsetX *= 0.82;
+      p.pulseOffsetY *= 0.82;
+
+      const hoverDistance = Math.hypot(p.x - pointer.x, p.y - pointer.y);
+      if (pointer.active && performance.now() - pointer.lastMove < 1200 && hoverDistance < (window.innerWidth < 700 ? 128 : 188)) {
+        const radius = window.innerWidth < 700 ? 128 : 188;
+        const falloff = 1 - hoverDistance / radius;
+        const hoverStrength = falloff * falloff;
+        p.pulse = Math.max(p.pulse, hoverStrength * 0.72);
+        p.rotation += (p.x - pointer.x) / radius * 0.012;
+        p.pulseOffsetX += Math.sin(p.phase + frame * 0.0009) * hoverStrength * 0.55;
+        p.pulseOffsetY += Math.cos(p.phase + frame * 0.0009) * hoverStrength * 0.55;
+      }
+
+      signalPulses.forEach((pulse) => {
+        const progress = pulse.life / pulse.maxLife;
+        const energy = Math.sin(Math.PI * progress);
+        const dx = p.x - pulse.x;
+        const dy = p.y - pulse.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance < pulse.radius) {
+          const falloff = 1 - distance / pulse.radius;
+          const wave = 0.5 + 0.5 * Math.sin(falloff * Math.PI * 4 - progress * Math.PI * 3 + pulse.seed);
+          const strength = falloff * energy * (0.45 + wave * 0.55);
+          p.rotation += strength * 0.012;
+          p.pulse = Math.max(p.pulse, strength * 0.68);
+          p.pulseOffsetX += Math.cos(pulse.seed + distance * 0.035) * strength * 0.45;
+          p.pulseOffsetY += Math.sin(pulse.seed + distance * 0.035) * strength * 0.45;
         }
-        downloadLink.addEventListener('change', () => {
-          downloadListener();
-          downloadLink.removeEventListener('change', downloadListener);
-        });
-
-        setTimeout(() => {
-          document.addEventListener('click', hideRowMoreMenu);
-        }, 1);
-      }
-    });
-  });
-
-  const packageInfoModal = document.getElementById('packageInfoModal');
-  const packageInfoModalClose = document.getElementById('packageInfoModalClose');
-  packageInfoModalClose.addEventListener('click', () => {
-    packageInfoModal.hidden = true;
-  });
-
-  // Fluent dialogs use nested shadow-rooted elements, so we need to use JS to style them
-  const modalControl = packageInfoModal.shadowRoot.querySelector('.control');
-  modalControl.style.maxHeight = "90%";
-  modalControl.style.transition = 'height 0.2s ease-in-out';
-  modalControl.style.overflowY = 'hidden';
-
-  const packageInfoName = document.getElementById('packageInfoName');
-  const packageInfoId = document.getElementById('packageInfoId');
-  const packageInfoVersion = document.getElementById('packageInfoVersion');
-  const packageInfoDescription = document.getElementById('packageInfoDescription');
-  const packageInfoAuthor = document.getElementById('packageInfoAuthor');
-  const packageInfoDependencies = document.getElementById('packageInfoDependencies');
-  const packageInfoKeywords = document.getElementById('packageInfoKeywords');
-  const packageInfoLicense = document.getElementById('packageInfoLicense');
-
-  const rowAddToVccButtons = document.querySelectorAll('.rowAddToVccButton');
-  rowAddToVccButtons.forEach((button) => {
-    button.addEventListener('click', () => window.location.assign(`vcc://vpm/addRepo?url=${encodeURIComponent(LISTING_URL)}`));
-  });
-
-  const rowPackageInfoButton = document.querySelectorAll('.rowPackageInfoButton');
-  rowPackageInfoButton.forEach((button) => {
-    button.addEventListener('click', e => {
-      const packageId = e.target.dataset?.packageId;
-      const packageInfo = PACKAGES?.[packageId];
-      if (!packageInfo) {
-        console.error(`Did not find package ${packageId}. Packages available:`, PACKAGES);
-        return;
-      }
-
-      packageInfoName.textContent = packageInfo.displayName;
-      packageInfoId.textContent = packageId;
-      packageInfoVersion.textContent = `v${packageInfo.version}`;
-      packageInfoDescription.textContent = packageInfo.description;
-      packageInfoAuthor.textContent = packageInfo.author.name;
-      packageInfoAuthor.href = packageInfo.author.url;
-
-      if ((packageInfo.keywords?.length ?? 0) === 0) {
-        packageInfoKeywords.parentElement.classList.add('hidden');
-      } else {
-        packageInfoKeywords.parentElement.classList.remove('hidden');
-        packageInfoKeywords.innerHTML = null;
-        packageInfo.keywords.forEach(keyword => {
-          const keywordDiv = document.createElement('div');
-          keywordDiv.classList.add('me-2', 'mb-2', 'badge');
-          keywordDiv.textContent = keyword;
-          packageInfoKeywords.appendChild(keywordDiv);
-        });
-      }
-
-      if (!packageInfo.license?.length && !packageInfo.licensesUrl?.length) {
-        packageInfoLicense.parentElement.classList.add('hidden');
-      } else {
-        packageInfoLicense.parentElement.classList.remove('hidden');
-        packageInfoLicense.textContent = packageInfo.license ?? 'See License';
-        packageInfoLicense.href = packageInfo.licensesUrl ?? '#';
-      }
-
-      packageInfoDependencies.innerHTML = null;
-      Object.entries(packageInfo.dependencies).forEach(([name, version]) => {
-        const depRow = document.createElement('li');
-        depRow.classList.add('mb-2');
-        depRow.textContent = `${name} @ v${version}`;
-        packageInfoDependencies.appendChild(depRow);
       });
 
-      packageInfoModal.hidden = false;
+      p.pulse *= 0.91;
+      if (p.y > window.innerHeight + 80) {
+        p.y = -80;
+        p.x = Math.random() * window.innerWidth;
+      }
+      if (p.x < -80) p.x = window.innerWidth + 80;
+      if (p.x > window.innerWidth + 80) p.x = -80;
 
-      setTimeout(() => {
-        const height = packageInfoModal.querySelector('.col').clientHeight;
-        modalControl.style.setProperty('--dialog-height', `${height + 14}px`);
-      }, 1);
+      drawSuit(p, 1 + p.pulse * 1.65, 1 + p.pulse * 0.18);
     });
+  };
+
+  window.addEventListener('resize', () => { resize(); resetParticles(); signalPulses.length = 0; }, { passive: true });
+  window.addEventListener('pointermove', (event) => {
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    pointer.active = true;
+    pointer.lastMove = performance.now();
+  }, { passive: true });
+  window.addEventListener('pointerdown', (event) => {
+    pointer.x = event.clientX;
+    pointer.y = event.clientY;
+    pointer.active = true;
+    pointer.lastMove = performance.now();
+    addSignalPulse(event.clientX, event.clientY);
+  }, { passive: true });
+  window.addEventListener('pointerleave', () => {
+    pointer.x = -9999;
+    pointer.y = -9999;
+    pointer.active = false;
+  });
+  window.addEventListener('blur', () => { pointer.active = false; });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) cancelAnimationFrame(frame);
+    else frame = requestAnimationFrame(draw);
   });
 
-  const packageInfoVccUrlFieldCopy = document.getElementById('packageInfoVccUrlFieldCopy');
-  packageInfoVccUrlFieldCopy.addEventListener('click', () => {
-    const vccUrlField = document.getElementById('packageInfoVccUrlField');
-    vccUrlField.select();
-    navigator.clipboard.writeText(vccUrlField.value);
-    vccUrlFieldCopy.appearance = 'accent';
-    setTimeout(() => {
-      vccUrlFieldCopy.appearance = 'neutral';
-    }, 1000);
-  });
+  resize();
+  resetParticles();
+  draw();
+};
 
-  const packageInfoListingHelp = document.getElementById('packageInfoListingHelp');
-  packageInfoListingHelp.addEventListener('click', () => {
-    addListingToVccHelp.hidden = false;
-  });
-})();
+const init = () => {
+  document.body.setAttribute('data-theme', 'dark');
+  document.body.classList.add('theme-dark');
+  wireDialogsAndCopy();
+  wireSearch();
+  wirePackageControls();
+  initStageCanvas();
+};
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init, { once: true });
+} else {
+  init();
+}
