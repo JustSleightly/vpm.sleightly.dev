@@ -52,7 +52,7 @@
         <a href="https://discord.sleightly.dev" target="_blank" rel="noopener noreferrer">Discord</a>
         <a href="https://notes.sleightly.dev/community-repos" target="_blank" rel="noopener noreferrer">Community Repos</a>
       </div>
-      <button type="button" class="button nav-cta" id="navAddRepoButton">Add To VCC</button>
+      <button type="button" class="button nav-cta" id="navAddRepoButton" data-analytics-intent="repo_add">Add To VCC</button>
     </nav>
 
     <header class="hero-section" aria-label="JustSleightly VPM packages">
@@ -71,8 +71,8 @@
           </div>
           <input aria-readonly="true" id="vccUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
           <div class="action-row">
-            <button type="button" class="button primary" id="vccAddRepoButton">Add Listing To VCC</button>
-            <button type="button" class="button secondary" id="vccUrlFieldCopy">Copy URL</button>
+            <button type="button" class="button primary" id="vccAddRepoButton" data-analytics-intent="repo_add">Add Listing To VCC</button>
+            <button type="button" class="button secondary" id="vccUrlFieldCopy" data-analytics-intent="repo_copy">Copy URL</button>
             <button type="button" class="button secondary help-button" id="urlBarHelp">How To Add</button>
           </div>
         </aside>
@@ -107,7 +107,7 @@
                 </div>
               </div>
               <div class="package-action-cell">
-                <button type="button" class="button primary rowAddToVccButton" data-package-id="{{ package.Name }}">Add To VCC</button>
+                <button type="button" class="button primary rowAddToVccButton" data-analytics-intent="repo_add" data-package-id="{{ package.Name }}">Add To VCC</button>
                 <button type="button" title="Package Details" class="button secondary rowPackageInfoButton" data-package-id="{{ package.Name }}" aria-label="Package details for {{ package.DisplayName }}">Package Details</button>
               </div>
             </article>
@@ -135,7 +135,7 @@
         </ol>
         <div class="dialog-url-row">
           <input aria-readonly="true" id="vccListingInfoUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
-          <button type="button" class="button secondary" id="vccListingInfoUrlFieldCopy">Copy URL</button>
+          <button type="button" class="button secondary" id="vccListingInfoUrlFieldCopy" data-analytics-intent="repo_copy">Copy URL</button>
         </div>
         <p class="dialog-footnote"><a href="https://vcc.docs.vrchat.com" target="_blank" rel="noopener noreferrer">VCC Docs</a><span aria-hidden="true">/</span><a href="https://vrc-get.anatawa12.com/en/alcom/" target="_blank" rel="noopener noreferrer">ALCOM</a><span aria-hidden="true">/</span><a href="https://notes.sleightly.dev/community-repos" target="_blank" rel="noopener noreferrer">Community Repos</a></p>
       </div>
@@ -189,14 +189,14 @@
 
         <div class="dialog-action-footer">
           <div class="dialog-actions-primary">
-            <button type="button" class="button primary" id="packageInfoAddToVcc">Add Listing To VCC</button>
+            <button type="button" class="button primary" id="packageInfoAddToVcc" data-analytics-intent="repo_add">Add Listing To VCC</button>
             <a class="button secondary" id="packageInfoDownloadZip" href="#" target="_blank" rel="noopener noreferrer">Download ZIP</a>
             <a class="button secondary" id="packageInfoDownloadUnityPackage" href="#" target="_blank" rel="noopener noreferrer">Download Unity Package</a>
             <a class="button secondary" id="packageInfoDownloadPackageJson" href="#" target="_blank" rel="noopener noreferrer">Download Package.json</a>
           </div>
           <div class="dialog-url-row">
             <input aria-readonly="true" id="packageInfoVccUrlField" class="vccUrlField" readonly value="{{ listingInfo.Url }}">
-            <button type="button" class="button secondary" id="packageInfoVccUrlFieldCopy">Copy URL</button>
+            <button type="button" class="button secondary" id="packageInfoVccUrlFieldCopy" data-analytics-intent="repo_copy">Copy URL</button>
           </div>
         </div>
 <<<<<<< HEAD
@@ -243,5 +243,6 @@
   </div>
 
   <script type="module" src="app.js?v=20260630-suit-hover-density"></script>
+  <script defer src="analytics.js" data-host="vpm.sleightly.dev" data-measurement="G-JH333X93VP" data-title="JustSleightly VPM Packages"></script>
 </body>
 </html>

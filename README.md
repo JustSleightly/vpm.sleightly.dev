@@ -38,3 +38,8 @@ The listing will rebuild whenever `.github/workflows/build-listing.yml` is:
 ## 🏠 Customizing the Landing Page
 
 The contents of the `Website` directory can be customized to change the appearance of the landing page. Most of the information will be automatically filled in with information from [`source.json`](source.json). Customizing the landing page by hand is not required.
+
+## Analytics
+
+GA4 records canonical homepage views and fixed outbound/contact categories on the production hostname only. Query strings, fragments, link text, destination URLs, form contents and user identifiers are not sent. Referrers are reduced to their origin. DNT and Global Privacy Control suppress collection. Enhanced Measurement must remain disabled for this stream to avoid additional automatic collection. Local previews do not load the tag.
+Repository add/copy buttons record intent with a fixed method only; feed generation and package data are unchanged.
